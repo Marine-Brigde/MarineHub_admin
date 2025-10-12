@@ -1,6 +1,7 @@
 "use client"
 import React from 'react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, LineChart } from "recharts"
+import { useTheme } from '../../contexts/ThemeContext'
 
 const requestsData = [
   { time: "00:00", value: 2400, error: 24, success: 2376 },
@@ -33,23 +34,31 @@ const responseTimeData = [
 ]
 
 export function AnalyticsCharts() {
+  const { isLight } = useTheme()
+  
   return (
     <div className="grid gap-4 md:grid-cols-2 mb-6">
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
+      <div className={`rounded-lg border p-6 ${
+        isLight 
+          ? 'border-gray-200 bg-white' 
+          : 'border-zinc-800 bg-zinc-900'
+      }`}>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-white mb-2">Edge Requests</h3>
+          <h3 className={`text-base font-semibold mb-2 ${
+            isLight ? 'text-gray-900' : 'text-white'
+          }`}>Edge Requests</h3>
           <div className="flex gap-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-purple-500" />
-              <span className="text-zinc-400">2XX</span>
+              <span className={isLight ? 'text-gray-600' : 'text-zinc-400'}>2XX</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-blue-500" />
-              <span className="text-zinc-400">4XX</span>
+              <span className={isLight ? 'text-gray-600' : 'text-zinc-400'}>4XX</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-red-500" />
-              <span className="text-zinc-400">5XX</span>
+              <span className={isLight ? 'text-gray-600' : 'text-zinc-400'}>5XX</span>
             </div>
           </div>
         </div>
@@ -61,9 +70,9 @@ export function AnalyticsCharts() {
                 <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="time" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+            <XAxis dataKey="time" stroke={isLight ? "#6b7280" : "#71717a"} fontSize={12} tickLine={false} axisLine={false} />
             <YAxis
-              stroke="#71717a"
+              stroke={isLight ? "#6b7280" : "#71717a"}
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -71,10 +80,10 @@ export function AnalyticsCharts() {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                border: "1px solid #27272a",
+                backgroundColor: isLight ? "#ffffff" : "#18181b",
+                border: isLight ? "1px solid #e5e7eb" : "1px solid #27272a",
                 borderRadius: "8px",
-                color: "#fff",
+                color: isLight ? "#374151" : "#fff",
               }}
             />
             <Area
@@ -89,17 +98,23 @@ export function AnalyticsCharts() {
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
+      <div className={`rounded-lg border p-6 ${
+        isLight 
+          ? 'border-gray-200 bg-white' 
+          : 'border-zinc-800 bg-zinc-900'
+      }`}>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-white mb-2">Fast Data Transfer</h3>
+          <h3 className={`text-base font-semibold mb-2 ${
+            isLight ? 'text-gray-900' : 'text-white'
+          }`}>Fast Data Transfer</h3>
           <div className="flex gap-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-purple-500" />
-              <span className="text-zinc-400">Outgoing: 102GB</span>
+              <span className={isLight ? 'text-gray-600' : 'text-zinc-400'}>Outgoing: 102GB</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-zinc-400">Incoming: 3GB</span>
+              <span className={isLight ? 'text-gray-600' : 'text-zinc-400'}>Incoming: 3GB</span>
             </div>
           </div>
         </div>
@@ -115,9 +130,9 @@ export function AnalyticsCharts() {
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="time" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+            <XAxis dataKey="time" stroke={isLight ? "#6b7280" : "#71717a"} fontSize={12} tickLine={false} axisLine={false} />
             <YAxis
-              stroke="#71717a"
+              stroke={isLight ? "#6b7280" : "#71717a"}
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -125,10 +140,10 @@ export function AnalyticsCharts() {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                border: "1px solid #27272a",
+                backgroundColor: isLight ? "#ffffff" : "#18181b",
+                border: isLight ? "1px solid #e5e7eb" : "1px solid #27272a",
                 borderRadius: "8px",
-                color: "#fff",
+                color: isLight ? "#374151" : "#fff",
               }}
             />
             <Area
@@ -151,16 +166,24 @@ export function AnalyticsCharts() {
         </ResponsiveContainer>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 md:col-span-2">
+      <div className={`rounded-lg border p-6 md:col-span-2 ${
+        isLight 
+          ? 'border-gray-200 bg-white' 
+          : 'border-zinc-800 bg-zinc-900'
+      }`}>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-white mb-1">Average Response Size</h3>
-          <div className="text-2xl font-bold text-white">352.7 kB</div>
+          <h3 className={`text-base font-semibold mb-1 ${
+            isLight ? 'text-gray-900' : 'text-white'
+          }`}>Average Response Size</h3>
+          <div className={`text-2xl font-bold ${
+            isLight ? 'text-gray-900' : 'text-white'
+          }`}>352.7 kB</div>
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={responseTimeData}>
-            <XAxis dataKey="time" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+            <XAxis dataKey="time" stroke={isLight ? "#6b7280" : "#71717a"} fontSize={12} tickLine={false} axisLine={false} />
             <YAxis
-              stroke="#71717a"
+              stroke={isLight ? "#6b7280" : "#71717a"}
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -168,10 +191,10 @@ export function AnalyticsCharts() {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                border: "1px solid #27272a",
+                backgroundColor: isLight ? "#ffffff" : "#18181b",
+                border: isLight ? "1px solid #e5e7eb" : "1px solid #27272a",
                 borderRadius: "8px",
-                color: "#fff",
+                color: isLight ? "#374151" : "#fff",
               }}
             />
             <Line type="monotone" dataKey="avg" stroke="#a855f7" strokeWidth={2} dot={false} />
