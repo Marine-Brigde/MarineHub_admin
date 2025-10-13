@@ -9,6 +9,7 @@ import ActivityPage from '../pages/Activity'
 import FunctionsPage from '../pages/Functions'
 import EdgeNetworkPage from '../pages/EdgeNetwork'
 import DatabasePage from '../pages/Database'
+import PortsPage from '../pages/Ports'
 import SettingsPage from '../pages/Settings'
 import SecurityPage from '../pages/Security'
 import LogsPage from '../pages/Logs'
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'functions', element: <FunctionsPage /> },
       { path: 'edge-network', element: <EdgeNetworkPage /> },
       { path: 'database', element: <DatabasePage /> },
+      { path: 'ports', element: <PortsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'security', element: <SecurityPage /> },
       { path: 'logs', element: <LogsPage /> },

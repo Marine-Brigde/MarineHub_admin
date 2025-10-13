@@ -17,6 +17,7 @@ import {
   Activity,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react"
 
 const navigation = [
@@ -30,6 +31,7 @@ const compute = [
   { name: "Functions", href: "/functions", icon: Zap },
   { name: "Edge Network", href: "/edge-network", icon: Globe },
   { name: "Database", href: "/database", icon: Database },
+  { name: "Ports", href: "/ports", icon: MapPin },
 ]
 
 const system = [
