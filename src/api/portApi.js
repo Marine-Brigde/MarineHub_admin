@@ -26,5 +26,19 @@ export const portApi = {
         const url = `/v1/ports?${queryParams.toString()}`
         const response = await axiosClient.get(url)
         return response.data
+    },
+
+    // 🔎 Lấy chi tiết 1 port theo id
+    getPortById: async (id) => {
+        const url = `/v1/ports/${id}`
+        const response = await axiosClient.get(url)
+        return response.data
+    },
+
+    // ✏️ Cập nhật port (PATCH /v1/ports/{id})
+    updatePort: async (id, data) => {
+        const url = `/v1/ports/${id}`
+        const response = await axiosClient.patch(url, data)
+        return response.data
     }
 }

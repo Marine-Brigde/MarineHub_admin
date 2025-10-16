@@ -17,6 +17,16 @@ export default function PortsPage() {
   const [searchName, setSearchName] = useState('')
   const [sortBy, setSortBy] = useState('name')
   const [isAsc, setIsAsc] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingPort, setEditingPort] = useState(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    country: '',
+    city: '',
+    longitude: '',
+    latitude: ''
+  })
+  const [saving, setSaving] = useState(false)
 
   const fetchPorts = async () => {
     try {
@@ -69,6 +79,54 @@ export default function PortsPage() {
     } else {
       setSortBy(field)
       setIsAsc(true)
+    }
+  }
+
+  const openEdit = (port) => {
+    setEditingPort(port)
+    setEditForm({
+      name: port.name || '',
+      country: port.country || '',
+      city: port.city || '',
+      longitude: port.longitude ?? '',
+      latitude: port.latitude ?? ''
+    })
+    setEditOpen(true)
+  }
+
+  const closeEdit = () => {
+    setEditOpen(false)
+    setEditingPort(null)
+  }
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target
+    setEditForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  const saveEdit = async () => {
+    if (!editingPort) return
+    try {
+      setSaving(true)
+      const payload = {
+        name: editForm.name,
+        country: editForm.country,
+        city: editForm.city,
+        longitude: editForm.longitude,
+        latitude: editForm.latitude
+      }
+      const res = await portApi.updatePort(editingPort.id, payload)
+      if (res.status === 200) {
+        // refresh list
+        await fetchPorts()
+        closeEdit()
+      } else {
+        setError(res.message || 'Cập nhật cảng thất bại')
+      }
+    } catch (err) {
+      setError(err.message || 'Cập nhật cảng thất bại')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -284,7 +342,7 @@ export default function PortsPage() {
                           isLight
                             ? 'text-blue-600 hover:bg-blue-50'
                             : 'text-cyan-400 hover:bg-blue-900/40'
-                        }`}>
+                        }`} onClick={() => openEdit(port)}>
                           <Edit className="h-4 w-4" />
                         </button>
                         <button className={`p-2 rounded-lg transition-colors ${
@@ -345,6 +403,69 @@ export default function PortsPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={closeEdit}></div>
+          <div className={`relative w-full max-w-lg rounded-lg p-6 mx-4 ${
+            isLight ? 'bg-white border border-gray-200' : 'bg-zinc-900 border border-zinc-800'
+          }`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+              Chỉnh sửa cảng
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>Tên cảng</label>
+                <input name="name" value={editForm.name} onChange={handleEditChange}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    isLight ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
+                  }`} />
+              </div>
+              <div>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>Quốc gia</label>
+                <input name="country" value={editForm.country} onChange={handleEditChange}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    isLight ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
+                  }`} />
+              </div>
+              <div>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>Thành phố</label>
+                <input name="city" value={editForm.city} onChange={handleEditChange}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    isLight ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
+                  }`} />
+              </div>
+              <div>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>Kinh độ</label>
+                <input name="longitude" value={editForm.longitude} onChange={handleEditChange}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    isLight ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
+                  }`} />
+              </div>
+              <div>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>Vĩ độ</label>
+                <input name="latitude" value={editForm.latitude} onChange={handleEditChange}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    isLight ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
+                  }`} />
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button onClick={closeEdit} className={`px-4 py-2 rounded-lg transition-colors ${
+                isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-zinc-300 hover:bg-zinc-800'
+              }`}>
+                Hủy
+              </button>
+              <button onClick={saveEdit} disabled={saving} className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                isLight ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-cyan-600 text-white hover:bg-cyan-700'
+              }`}>
+                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
