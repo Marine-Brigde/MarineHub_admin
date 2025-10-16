@@ -36,3 +36,12 @@ export const PortQueryParams = {
     isAsc: Boolean,
     name: String
 }
+
+// Port request data structure for creating/updating
+export const PortRequest = {
+    name: String,
+    country: String,
+    city: String,
+    longitude: String,
+    latitude: String
+}

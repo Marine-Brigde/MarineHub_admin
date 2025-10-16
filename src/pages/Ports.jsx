@@ -117,11 +117,13 @@ export default function PortsPage() {
           </form>
 
           {/* Add Button */}
-          <button className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-            isLight
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-cyan-600 text-white hover:bg-cyan-700'
-          }`}>
+          <button 
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              isLight
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-cyan-600 text-white hover:bg-cyan-700'
+            }`}
+          >
             <Plus className="h-4 w-4" />
             Thêm Cảng
           </button>

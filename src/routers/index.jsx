@@ -13,15 +13,24 @@ import PortsPage from '../pages/Ports'
 import SettingsPage from '../pages/Settings'
 import SecurityPage from '../pages/Security'
 import LogsPage from '../pages/Logs'
+import { ProtectedRoute, PublicRoute } from '../components/Auth/ProtectedRoute'
 
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
   },
   {
     path: '/',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to="/home" replace /> },
       { path: 'home', element: <HomePage /> },
