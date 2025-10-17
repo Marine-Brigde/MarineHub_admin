@@ -14,6 +14,8 @@ import SettingsPage from '../pages/Settings'
 import SecurityPage from '../pages/Security'
 import LogsPage from '../pages/Logs'
 import { ProtectedRoute, PublicRoute } from '../components/Auth/ProtectedRoute'
+import GoongMap from '../components/map/GoongMap'
+import MapComponent from '../components/map/GoongMap'
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +24,14 @@ export const router = createBrowserRouter([
       <PublicRoute>
         <LoginPage />
       </PublicRoute>
+    ),
+  },
+  {
+    path: '/map',
+    element: (
+      <ProtectedRoute>
+        <MapComponent />
+      </ProtectedRoute>
     ),
   },
   {
