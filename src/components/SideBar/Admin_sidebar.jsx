@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  AlertTriangle,
 } from "lucide-react"
 
 const navigation = [
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
   { name: "Users", href: "/users", icon: Users, current: false },
   { name: "Activity", href: "/activity", icon: Activity, current: false },
+  { name: "Đơn Khiếu Nại", href: "/incident-reports", icon: AlertTriangle, current: false },
 ]
 
 const compute = [
