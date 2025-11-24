@@ -8,7 +8,7 @@ import UsersPage from '../pages/Users'
 import ActivityPage from '../pages/Activity'
 import FunctionsPage from '../pages/Functions'
 import EdgeNetworkPage from '../pages/EdgeNetwork'
-import DatabasePage from '../pages/Database'
+import HistoryTransactionPage from '../pages/HistoryTransaction'
 import PortsPage from '../pages/Ports'
 import IncidentReportsPage from '../pages/IncidentReports'
 import SettingsPage from '../pages/Settings'
@@ -50,7 +50,8 @@ export const router = createBrowserRouter([
       { path: 'activity', element: <ActivityPage /> },
       { path: 'functions', element: <FunctionsPage /> },
       { path: 'edge-network', element: <EdgeNetworkPage /> },
-      { path: 'database', element: <DatabasePage /> },
+      { path: 'history-transaction', element: <HistoryTransactionPage /> },
+      { path: 'database', element: <Navigate to="/history-transaction" replace /> },
       { path: 'ports', element: <PortsPage /> },
       { path: 'incident-reports', element: <IncidentReportsPage /> },
       { path: 'settings', element: <SettingsPage /> },
