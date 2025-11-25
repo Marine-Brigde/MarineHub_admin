@@ -6,7 +6,7 @@ export const portApi = {
     getPorts: async (params = {}) => {
         const {
             page = 1,
-            size = 30,
+            size = 9,
             sortBy = 'name',
             isAsc = true,
             name = ''
@@ -32,6 +32,13 @@ export const portApi = {
     getPortById: async (id) => {
         const url = `/v1/ports/${id}`
         const response = await axiosClient.get(url)
+        return response.data
+    },
+
+    // ➕ Tạo port mới (POST /v1/ports)
+    createPort: async (data) => {
+        const url = `/v1/ports`
+        const response = await axiosClient.post(url, data)
         return response.data
     },
 

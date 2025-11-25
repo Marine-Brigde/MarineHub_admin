@@ -3,9 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css'; // Import CSS ở đây thay vì HTML
 
-// Hardcode Goong keys (sử dụng key từ code của bạn, thay bằng key thật nếu cần)
-const MAP_KEY = 'ebt7JiGUl4WpHtDy5kpe4JB299y5TAm63e9My9Z6'; // Thay bằng Map Key của bạn
-const API_KEY = 'C6cwG6MCfcHXlBVpKbzFqKkeS2d0AxM1N6uW5Y03'; // Thay bằng API Key của bạn
+// Get Goong keys from environment variables
+const MAP_KEY = import.meta.env.VITE_GOONG_MAP_KEY || 'ebt7JiGUl4WpHtDy5kpe4JB299y5TAm63e9My9Z6';
+const API_KEY = import.meta.env.VITE_GOONG_API_KEY || 'C6cwG6MCfcHXlBVpKbzFqKkeS2d0AxM1N6uW5Y03';
 
 function MapComponent({ onLocationSelect }) {
     const mapContainer = useRef(null);
@@ -193,26 +193,35 @@ function MapComponent({ onLocationSelect }) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 h-full flex flex-col">
             <div className="space-y-2">
-                <label htmlFor="address-search" className="block text-sm font-medium">
-                    Tìm kiếm địa chỉ hoặc nhấp vào bản đồ để ghim
-                </label>
                 <input
                     id="address-search"
-                    placeholder="Nhập địa chỉ để tìm kiếm"
-                    className="w-full px-2 py-1 border rounded mb-2"
+                    placeholder="Nhập địa chỉ để tìm kiếm hoặc nhấp vào bản đồ để chọn vị trí"
+                    className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2 ${
+                        'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500/20 dark:border-blue-800/60 dark:bg-blue-900/40 dark:text-slate-100 dark:placeholder:text-blue-300/50 dark:focus:border-cyan-500/50 dark:focus:ring-cyan-500/20'
+                    }`}
                     value={query}
                     onChange={(e) => handleSearch(e.target.value)}
                 />
             </div>
-            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {error && (
+                <div className={`text-sm p-2 rounded-lg ${
+                    'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
+                }`}>
+                    {error}
+                </div>
+            )}
             {suggestions.length > 0 && (
-                <div className="max-h-40 overflow-y-auto border rounded bg-white">
+                <div className={`max-h-32 overflow-y-auto rounded-lg border ${
+                    'bg-white border-gray-200 dark:bg-zinc-800 dark:border-zinc-700'
+                }`}>
                     {suggestions.map((suggestion) => (
                         <button
                             key={suggestion.place_id}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 border-b last:border-b-0"
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 border-b last:border-b-0 ${
+                                'dark:border-zinc-700'
+                            }`}
                             onClick={() => {
                                 setQuery(suggestion.description);
                                 setSuggestions([]);
@@ -224,7 +233,7 @@ function MapComponent({ onLocationSelect }) {
                     ))}
                 </div>
             )}
-            <div ref={mapContainer} className="w-full h-96 rounded-lg" />
+            <div ref={mapContainer} className="w-full flex-1 rounded-lg overflow-hidden" style={{ minHeight: '300px' }} />
         </div>
     );
 }
