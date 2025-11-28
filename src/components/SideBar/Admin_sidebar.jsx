@@ -19,6 +19,7 @@ import {
   ChevronRight,
   MapPin,
   AlertTriangle,
+  Building2,
 } from "lucide-react"
 
 const navigation = [
@@ -31,7 +32,7 @@ const navigation = [
 
 const compute = [
   { name: "Functions", href: "/functions", icon: Zap },
-  { name: "Edge Network", href: "/edge-network", icon: Globe },
+  { name: "Xưởng Tàu", href: "/boatyards", icon: Building2 },
   { name: "Lịch sử giao dịch", href: "/history-transaction", icon: Database },
   { name: "Ports", href: "/ports", icon: MapPin },
 ]
