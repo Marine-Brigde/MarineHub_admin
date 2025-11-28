@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { boatyardApi } from '../api/boatyardApi'
-import { Search, Building2, MapPin, Calendar, User, Phone, Mail, Globe, Eye } from 'lucide-react'
+import { revenueApi } from '../api/revenueApi'
+import { Search, Building2, MapPin, Calendar, User, Phone, Mail, Globe, Eye, DollarSign, X, QrCode, Download } from 'lucide-react'
 
 export default function BoatyardsPage() {
   const { isLight } = useTheme()
@@ -19,6 +20,15 @@ export default function BoatyardsPage() {
   const [isAsc, setIsAsc] = useState(false)
   const [selectedBoatyard, setSelectedBoatyard] = useState(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [revenueOpen, setRevenueOpen] = useState(false)
+  const [revenueForm, setRevenueForm] = useState({
+    startDate: '',
+    endDate: ''
+  })
+  const [creatingRevenue, setCreatingRevenue] = useState(false)
+  const [revenueError, setRevenueError] = useState(null)
+  const [qrCodeUrl, setQrCodeUrl] = useState(null)
+  const [revenueSuccess, setRevenueSuccess] = useState(false)
 
   const fetchBoatyards = async () => {
     try {
@@ -83,6 +93,77 @@ export default function BoatyardsPage() {
   const closeDetail = () => {
     setDetailOpen(false)
     setSelectedBoatyard(null)
+  }
+
+  const openRevenue = (boatyard) => {
+    setSelectedBoatyard(boatyard)
+    setRevenueForm({
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0]
+    })
+    setRevenueError(null)
+    setQrCodeUrl(null)
+    setRevenueSuccess(false)
+    setRevenueOpen(true)
+  }
+
+  const closeRevenue = () => {
+    setRevenueOpen(false)
+    setSelectedBoatyard(null)
+    setRevenueForm({ startDate: '', endDate: '' })
+    setRevenueError(null)
+    setQrCodeUrl(null)
+    setRevenueSuccess(false)
+  }
+
+  const handleRevenueChange = (e) => {
+    const { name, value } = e.target
+    setRevenueForm(prev => ({ ...prev, [name]: value }))
+    setRevenueError(null)
+  }
+
+  const createRevenue = async () => {
+    if (!selectedBoatyard) return
+
+    // Validation
+    if (!revenueForm.startDate) {
+      setRevenueError('Vui lòng chọn ngày bắt đầu')
+      return
+    }
+    if (!revenueForm.endDate) {
+      setRevenueError('Vui lòng chọn ngày kết thúc')
+      return
+    }
+    if (new Date(revenueForm.endDate) < new Date(revenueForm.startDate)) {
+      setRevenueError('Ngày kết thúc phải sau ngày bắt đầu')
+      return
+    }
+
+    try {
+      setCreatingRevenue(true)
+      setRevenueError(null)
+      
+      const payload = {
+        id: selectedBoatyard.id,
+        type: 'Boatyard', // Tự động set cho Boatyards page
+        startDate: revenueForm.startDate,
+        endDate: revenueForm.endDate
+      }
+
+      const response = await revenueApi.createRevenue(payload)
+      
+      if (response.status === 200) {
+        setQrCodeUrl(response.data)
+        setRevenueSuccess(true)
+      } else {
+        setRevenueError(response.message || 'Tạo đơn doanh thu thất bại')
+      }
+    } catch (err) {
+      setRevenueError(err.message || err.response?.data?.message || 'Tạo đơn doanh thu thất bại')
+      console.error('Error creating revenue:', err)
+    } finally {
+      setCreatingRevenue(false)
+    }
   }
 
   const formatDate = (dateString) => {
@@ -642,9 +723,20 @@ export default function BoatyardsPage() {
             </div>
 
             {/* Footer */}
-            <div className={`sticky bottom-0 flex items-center justify-end gap-3 p-6 border-t ${
+            <div className={`sticky bottom-0 flex items-center justify-between gap-3 p-6 border-t ${
               isLight ? 'border-gray-200 bg-white' : 'border-zinc-800 bg-zinc-900'
             }`}>
+              <button 
+                onClick={() => openRevenue(selectedBoatyard)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isLight
+                    ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                    : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                }`}
+              >
+                <DollarSign className="h-4 w-4" />
+                Tạo đơn doanh thu
+              </button>
               <button 
                 onClick={closeDetail}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -655,6 +747,237 @@ export default function BoatyardsPage() {
               >
                 Đóng
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revenue Modal */}
+      {revenueOpen && selectedBoatyard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={closeRevenue}></div>
+          <div className={`relative w-full max-w-2xl rounded-lg ${isLight ? 'bg-white' : 'bg-zinc-900'} border ${
+            isLight ? 'border-gray-200' : 'border-zinc-800'
+          } max-h-[90vh] overflow-y-auto`}>
+            {/* Header */}
+            <div className={`sticky top-0 flex items-center justify-between p-6 border-b ${
+              isLight ? 'border-gray-200 bg-white' : 'border-zinc-800 bg-zinc-900'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-lg ${
+                  isLight ? 'bg-cyan-100' : 'bg-cyan-900/40'
+                }`}>
+                  <DollarSign className={`h-6 w-6 ${
+                    isLight ? 'text-cyan-600' : 'text-cyan-400'
+                  }`} />
+                </div>
+                <div>
+                  <h2 className={`text-xl font-semibold ${
+                    isLight ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    Tạo đơn doanh thu
+                  </h2>
+                  <p className={`text-sm mt-0.5 ${
+                    isLight ? 'text-gray-500' : 'text-zinc-400'
+                  }`}>
+                    {selectedBoatyard.name || 'Chưa có tên'}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={closeRevenue}
+                className={`p-2 rounded-lg transition-colors ${
+                  isLight 
+                    ? 'text-gray-500 hover:bg-gray-100' 
+                    : 'text-zinc-400 hover:bg-zinc-800'
+                }`}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {!revenueSuccess ? (
+                <>
+                  {revenueError && (
+                    <div className={`mb-4 p-3 rounded-lg ${
+                      isLight 
+                        ? 'border-red-200 bg-red-50 text-red-800' 
+                        : 'border-red-800 bg-red-900/20 text-red-400'
+                    }`}>
+                      {revenueError}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`text-sm font-medium mb-2 block ${
+                          isLight ? 'text-gray-700' : 'text-zinc-300'
+                        }`}>
+                          Ngày bắt đầu <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={revenueForm.startDate}
+                          onChange={handleRevenueChange}
+                          className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
+                            isLight 
+                              ? 'border-gray-300 bg-white text-gray-900 focus:border-cyan-500 focus:ring-cyan-500/20' 
+                              : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/20'
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`text-sm font-medium mb-2 block ${
+                          isLight ? 'text-gray-700' : 'text-zinc-300'
+                        }`}>
+                          Ngày kết thúc <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          name="endDate"
+                          value={revenueForm.endDate}
+                          onChange={handleRevenueChange}
+                          min={revenueForm.startDate}
+                          className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${
+                            isLight 
+                              ? 'border-gray-300 bg-white text-gray-900 focus:border-cyan-500 focus:ring-cyan-500/20' 
+                              : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/20'
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border ${
+                      isLight ? 'border-blue-200 bg-blue-50' : 'border-blue-800/50 bg-blue-900/30'
+                    }`}>
+                      <p className={`text-sm ${
+                        isLight ? 'text-blue-800' : 'text-blue-200'
+                      }`}>
+                        <strong>Lưu ý:</strong> Sau khi tạo đơn doanh thu, hệ thống sẽ tạo QR code để thanh toán. 
+                        Vui lòng chọn đúng khoảng thời gian cần tính doanh thu.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                    isLight ? 'bg-cyan-100' : 'bg-cyan-900/40'
+                  }`}>
+                    <QrCode className={`h-8 w-8 ${
+                      isLight ? 'text-cyan-600' : 'text-cyan-400'
+                    }`} />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${
+                    isLight ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    Tạo đơn doanh thu thành công!
+                  </h3>
+                  <p className={`text-sm mb-6 ${
+                    isLight ? 'text-gray-600' : 'text-zinc-400'
+                  }`}>
+                    Quét QR code bên dưới để thanh toán
+                  </p>
+                  
+                  {qrCodeUrl && (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className={`p-4 rounded-lg border ${
+                        isLight ? 'border-gray-200 bg-white' : 'border-zinc-700 bg-zinc-800/50'
+                      }`}>
+                        <img
+                          src={qrCodeUrl}
+                          alt="QR Code Thanh toán"
+                          className="w-64 h-64 object-contain"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'block'
+                          }}
+                        />
+                        <p className={`text-xs mt-2 text-center ${
+                          isLight ? 'text-gray-500' : 'text-zinc-400'
+                        }`} style={{ display: 'none' }}>
+                          Không thể tải QR code
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <a
+                          href={qrCodeUrl}
+                          download="qr-code-payment.png"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            isLight
+                              ? 'bg-gray-600 text-white hover:bg-gray-700'
+                              : 'bg-zinc-700 text-white hover:bg-zinc-600'
+                          }`}
+                        >
+                          <Download className="h-4 w-4" />
+                          Tải QR Code
+                        </a>
+                        <button
+                          onClick={() => window.open(qrCodeUrl, '_blank')}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            isLight
+                              ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                              : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                          }`}
+                        >
+                          <QrCode className="h-4 w-4" />
+                          Mở trong tab mới
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className={`sticky bottom-0 flex items-center justify-end gap-3 p-6 border-t ${
+              isLight ? 'border-gray-200 bg-white' : 'border-zinc-800 bg-zinc-900'
+            }`}>
+              {!revenueSuccess ? (
+                <>
+                  <button 
+                    onClick={closeRevenue}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      isLight
+                        ? 'text-gray-700 hover:bg-gray-100'
+                        : 'text-zinc-300 hover:bg-zinc-800'
+                    }`}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={createRevenue}
+                    disabled={creatingRevenue}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                      isLight
+                        ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                        : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                    }`}
+                  >
+                    {creatingRevenue ? 'Đang tạo...' : 'Tạo đơn doanh thu'}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={closeRevenue}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    isLight
+                      ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                      : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                  }`}
+                >
+                  Đóng
+                </button>
+              )}
             </div>
           </div>
         </div>
