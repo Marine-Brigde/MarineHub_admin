@@ -6,7 +6,7 @@ import HomePage from '../pages/Home'
 import AnalyticsPage from '../pages/Analytics'
 import UsersPage from '../pages/Users'
 import ActivityPage from '../pages/Activity'
-import FunctionsPage from '../pages/Functions'
+import SuppliersPage from '../pages/Suppliers'
 import BoatyardsPage from '../pages/Boatyards'
 import HistoryTransactionPage from '../pages/HistoryTransaction'
 import PortsPage from '../pages/Ports'
@@ -48,7 +48,8 @@ export const router = createBrowserRouter([
       { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'activity', element: <ActivityPage /> },
-      { path: 'functions', element: <FunctionsPage /> },
+      { path: 'suppliers', element: <SuppliersPage /> },
+      { path: 'functions', element: <Navigate to="/suppliers" replace /> },
       { path: 'boatyards', element: <BoatyardsPage /> },
       { path: 'edge-network', element: <Navigate to="/boatyards" replace /> },
       { path: 'history-transaction', element: <HistoryTransactionPage /> },
