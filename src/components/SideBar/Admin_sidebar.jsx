@@ -7,28 +7,28 @@ import { useTheme } from '../../contexts/ThemeContext'
 import {
   LayoutDashboard,
   Users,
-  BarChart3,
-  Settings,
+ // BarChart3,
+ // Settings,
   Database,
-  Shield,
-  Zap,
-  Globe,
-  FileText,
-  Activity,
+ // Shield,
+ // Zap,
+ // Globe,
+  //FileText,
+  //Activity,
   ChevronLeft,
   ChevronRight,
   MapPin,
-  AlertTriangle,
+  // AlertTriangle,
   Building2,
   Package,
 } from "lucide-react"
 
 const navigation = [
   { name: "Home", href: "/home", icon: LayoutDashboard, current: true },
-  { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
-  { name: "Users", href: "/users", icon: Users, current: false },
-  { name: "Activity", href: "/activity", icon: Activity, current: false },
-  { name: "Đơn Khiếu Nại", href: "/incident-reports", icon: AlertTriangle, current: false },
+  // { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
+   { name: "Users", href: "/users", icon: Users, current: false },
+  // { name: "Activity", href: "/activity", icon: Activity, current: false },
+  // { name: "Đơn Khiếu Nại", href: "/incident-reports", icon: AlertTriangle, current: false },
 ]
 
 const compute = [
@@ -38,11 +38,11 @@ const compute = [
   { name: "Ports", href: "/ports", icon: MapPin },
 ]
 
-const system = [
-  { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Security", href: "/security", icon: Shield },
-  { name: "Logs", href: "/logs", icon: FileText },
-]
+// const system = [
+//   { name: "Settings", href: "/settings", icon: Settings },
+//   { name: "Security", href: "/security", icon: Shield },
+//   { name: "Logs", href: "/logs", icon: FileText },
+// ]
 
 export function AdminSidebar() {
   const location = useLocation()
@@ -133,7 +133,7 @@ export function AdminSidebar() {
           </div>
         </div>
 
-        <div>
+        {/* <div>
           {!isCollapsed && (
             <h3 className={`mb-2 px-3 text-xs font-semibold uppercase tracking-wider ${
               isLight ? 'text-gray-500' : 'text-blue-300/70'
@@ -164,7 +164,7 @@ export function AdminSidebar() {
               </Link>
             ))}
           </div>
-        </div>
+        </div> */}
       </nav>
     </aside>
   )

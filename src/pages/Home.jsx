@@ -1,6 +1,5 @@
 import React from 'react'
 import { AnalyticsCharts } from '../components/Charts/analytics-charts'
-import { RecentActivity } from '../components/Charts/recent-activity'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function HomePage() {
@@ -15,7 +14,7 @@ export default function HomePage() {
         <p className={isLight ? 'text-gray-600' : 'text-zinc-400'}>Monitor your application performance and analytics</p>
       </div>
       <AnalyticsCharts />
-      <RecentActivity />
+      
     </div>
   )
 }
