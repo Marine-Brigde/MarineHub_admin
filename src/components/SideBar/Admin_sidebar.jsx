@@ -34,7 +34,7 @@ const navigation = [
 const compute = [
   { name: "Nhà Cung Cấp", href: "/suppliers", icon: Package },
   { name: "Xưởng Tàu", href: "/boatyards", icon: Building2 },
-  { name: "Lịch sử giao dịch", href: "/history-transaction", icon: Database },
+  // { name: "Lịch sử giao dịch", href: "/history-transaction", icon: Database },
   { name: "Ports", href: "/ports", icon: MapPin },
 ]
 
