@@ -25,9 +25,26 @@ export function AdminLoginForm() {
             setIsLoading(false)
             return
         }
+
+        // Kiểm tra format email nếu người dùng nhập email (có chứa @)
+        if (formData.usernameOrEmail.includes('@')) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(formData.usernameOrEmail.trim())) {
+                setError('Email không hợp lệ. Vui lòng kiểm tra lại.')
+                setIsLoading(false)
+                return
+            }
+        }
         
         if (!formData.password.trim()) {
             setError('Vui lòng nhập mật khẩu')
+            setIsLoading(false)
+            return
+        }
+
+        // Kiểm tra độ dài mật khẩu tối thiểu
+        if (formData.password.trim().length < 6) {
+            setError('Mật khẩu phải có ít nhất 6 ký tự')
             setIsLoading(false)
             return
         }
@@ -37,7 +54,16 @@ export function AdminLoginForm() {
             console.log('Login response:', response)
             
             if (response.status === 200) {
-                // Đăng nhập thành công, redirect đến dashboard
+                // Kiểm tra user có phải admin không
+                if (!authApi.isAdmin()) {
+                    // Nếu không phải admin, logout và hiển thị lỗi
+                    authApi.logout()
+                    setError('Tài khoản này không có quyền truy cập. Chỉ có tài khoản admin mới được phép đăng nhập.')
+                    setIsLoading(false)
+                    return
+                }
+                
+                // Đăng nhập thành công và là admin, redirect đến dashboard
                 navigate('/')
             } else {
                 setError(response.message || 'Đăng nhập thất bại')

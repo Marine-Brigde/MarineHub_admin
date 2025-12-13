@@ -39,6 +39,16 @@ export const authApi = {
         return userInfo ? JSON.parse(userInfo) : null
     },
 
+    // 🔒 Kiểm tra user có phải admin không
+    isAdmin: () => {
+        const userInfo = authApi.getCurrentUser()
+        if (!userInfo || !userInfo.role) return false
+        
+        // Kiểm tra role admin (case-insensitive)
+        const role = userInfo.role.toString().toLowerCase()
+        return role === 'admin'
+    },
+
     // 🔑 Kiểm tra token có hợp lệ không
     isAuthenticated: () => {
         const token = localStorage.getItem('accessToken')
