@@ -26,7 +26,7 @@ import {
 const navigation = [
   { name: "Home", href: "/home", icon: LayoutDashboard, current: true },
   // { name: "Analytics", href: "/analytics", icon: BarChart3, current: false },
-   { name: "Users", href: "/users", icon: Users, current: false },
+  { name: "Users", href: "/users", icon: Users, current: false },
   // { name: "Activity", href: "/activity", icon: Activity, current: false },
   // { name: "Đơn Khiếu Nại", href: "/incident-reports", icon: AlertTriangle, current: false },
 ]
@@ -34,9 +34,12 @@ const navigation = [
 const compute = [
   { name: "Nhà Cung Cấp", href: "/suppliers", icon: Package },
   { name: "Xưởng Tàu", href: "/boatyards", icon: Building2 },
-  // { name: "Lịch sử giao dịch", href: "/history-transaction", icon: Database },
+  { name: "Lịch sử giao dịch", href: "/history-transaction", icon: Database },
   { name: "Ports", href: "/ports", icon: MapPin },
 ]
+
+// Tạm thời chưa có menu System, tránh lỗi biến chưa định nghĩa
+const system = []
 
 // const system = [
 //   { name: "Settings", href: "/settings", icon: Settings },
@@ -50,10 +53,10 @@ export function AdminSidebar() {
   const { isLight } = useTheme()
 
   return (
-    <aside className={`hidden lg:flex lg:flex-col border-r glass-panel transition-all duration-300 ${
+    <aside className={`hidden lg:flex lg:flex-col border-r glass-panel transition-all duration-300 sticky top-16 h-[calc(100vh-4rem)] ${
       isCollapsed ? 'w-16' : 'w-64'
     }`}>
-      <nav className="flex-1 space-y-6 p-4">
+      <nav className="flex-1 space-y-6 p-4 overflow-y-auto">
         {/* Toggle Button */}
         <div className="flex justify-end mb-4">
           <button
@@ -133,12 +136,8 @@ export function AdminSidebar() {
           </div>
         </div>
 
-        {/* <div>
-          {!isCollapsed && (
-            <h3 className={`mb-2 px-3 text-xs font-semibold uppercase tracking-wider ${
-              isLight ? 'text-gray-500' : 'text-blue-300/70'
-            }`}>System</h3>
-          )}
+        <div>
+          
           <div className="space-y-1">
             {system.map((item) => (
               <Link    
@@ -164,7 +163,7 @@ export function AdminSidebar() {
               </Link>
             ))}
           </div>
-        </div> */}
+        </div>
       </nav>
     </aside>
   )
