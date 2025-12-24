@@ -178,11 +178,29 @@ export default function SuppliersPage() {
         setQrCodeUrl(response.data)
         setRevenueSuccess(true)
       } else {
-        setRevenueError(response.message || 'Tạo đơn doanh thu thất bại')
+        // Xử lý lỗi từ API
+        const errorMsg = response.data || response.message || 'Tạo đơn doanh thu thất bại'
+        setRevenueError(errorMsg)
       }
     } catch (err) {
-      setRevenueError(err.message || err.response?.data?.message || 'Tạo đơn doanh thu thất bại')
+      // Xử lý lỗi 400 - doanh thu đã được chuyển khoản
       console.error('Error creating revenue:', err)
+
+      // axiosClient reject với error.response.data, nên err chính là {status, message, data}
+      let errorMsg = 'Tạo đơn doanh thu thất bại'
+
+      if (err && typeof err === 'object') {
+        // Ưu tiên lấy từ data field (chứa message chi tiết)
+        if (err.data) {
+          errorMsg = err.data
+        } else if (err.message) {
+          errorMsg = err.message
+        }
+      } else if (typeof err === 'string') {
+        errorMsg = err
+      }
+
+      setRevenueError(errorMsg)
     } finally {
       setCreatingRevenue(false)
     }
