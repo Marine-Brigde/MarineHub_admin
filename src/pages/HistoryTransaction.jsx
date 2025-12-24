@@ -5,6 +5,7 @@ import {
   Wallet2,
   ArrowDownUp,
   BadgeDollarSign,
+  DollarSign,
   CalendarRange,
   CheckCircle2,
   ArrowDownToLine,
@@ -55,23 +56,29 @@ const STATUS_STYLES = {
 
 // Map API type values to UI labels with light/dark mode support
 const TYPE_STYLES = {
-  Supplier: { 
+  Supplier: {
     light: 'bg-blue-100 text-blue-700 border border-blue-200',
-    dark: 'bg-blue-500/10 text-blue-200', 
+    dark: 'bg-blue-500/10 text-blue-200',
     label: 'Nhà Cung Cấp',
     icon: Package
   },
-  Boatyard: { 
+  Boatyard: {
     light: 'bg-cyan-100 text-cyan-700 border border-cyan-200',
-    dark: 'bg-cyan-500/10 text-cyan-200', 
+    dark: 'bg-cyan-500/10 text-cyan-200',
     label: 'Xưởng Tàu',
     icon: Building2
   },
-  Owner: { 
+  Owner: {
     light: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-    dark: 'bg-emerald-500/10 text-emerald-200', 
+    dark: 'bg-emerald-500/10 text-emerald-200',
     label: 'Chủ Tàu',
     icon: User
+  },
+  Revenue: {
+    light: 'bg-red-100 text-red-700 border border-red-200',
+    dark: 'bg-red-500/10 text-red-200',
+    label: 'Tiền Thanh Toán',
+    icon: DollarSign
   }
 }
 
@@ -142,11 +149,11 @@ function StatusBadge({ status }) {
 }
 
 function TypeBadge({ type, isLight }) {
-  const config = TYPE_STYLES[type] || { 
+  const config = TYPE_STYLES[type] || {
     light: 'bg-gray-100 text-gray-700 border border-gray-200',
-    dark: 'bg-gray-500/10 text-gray-200', 
-    label: type, 
-    icon: BadgeDollarSign 
+    dark: 'bg-gray-500/10 text-gray-200',
+    label: type,
+    icon: BadgeDollarSign
   }
   const Icon = config.icon || BadgeDollarSign
   const badgeClass = isLight ? config.light : config.dark
@@ -215,7 +222,7 @@ export default function HistoryTransactionPage() {
 
   useEffect(() => {
     fetchTransactions()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pagination.page,
     pagination.size
@@ -230,18 +237,18 @@ export default function HistoryTransactionPage() {
     }
 
     const totalVolume = transactions.reduce((sum, item) => sum + (item.amount || 0), 0)
-    const pending = transactions.filter((item) => 
+    const pending = transactions.filter((item) =>
       ['Pending', 'Processing'].includes(item.status)
     ).length
-    const approved = transactions.filter((item) => 
+    const approved = transactions.filter((item) =>
       item.status === 'Approved'
     ).length
 
-    return { 
-      totalVolume, 
-      pending, 
+    return {
+      totalVolume,
+      pending,
       approved,
-      totalTransactions: pagination.total || transactions.length 
+      totalTransactions: pagination.total || transactions.length
     }
   }, [transactions, pagination.total])
 
@@ -300,18 +307,17 @@ export default function HistoryTransactionPage() {
       {/* Error message */}
       {error && (
         <div
-          className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
-            isLight
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
-              : 'border-amber-500/40 bg-amber-500/10 text-amber-100'
-          }`}
+          className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${isLight
+            ? 'border-amber-200 bg-amber-50 text-amber-800'
+            : 'border-amber-500/40 bg-amber-500/10 text-amber-100'
+            }`}
         >
           {error}
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
         <div className={`rounded-2xl border p-5 ${cardBase}`}>
           <div className="flex items-center justify-between">
             <div>
@@ -335,19 +341,6 @@ export default function HistoryTransactionPage() {
             </div>
             <div className={`p-3 rounded-xl ${isLight ? 'bg-purple-100' : 'bg-purple-900/40'}`}>
               <ArrowDownUp className={`h-5 w-5 ${isLight ? 'text-purple-700' : 'text-purple-300'}`} />
-            </div>
-          </div>
-        </div>
-        <div className={`rounded-2xl border p-5 ${cardBase}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`text-sm ${isLight ? 'text-gray-500' : 'text-blue-100/70'}`}>Đang chờ</p>
-              <p className={`text-2xl font-semibold mt-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                {stats.pending} giao dịch
-              </p>
-            </div>
-            <div className={`p-3 rounded-xl ${isLight ? 'bg-amber-100' : 'bg-amber-900/40'}`}>
-              <CalendarRange className={`h-5 w-5 ${isLight ? 'text-amber-700' : 'text-amber-300'}`} />
             </div>
           </div>
         </div>
@@ -422,12 +415,11 @@ export default function HistoryTransactionPage() {
               )}
 
               {!loading && transactions.map((transaction) => (
-                <tr 
-                  key={transaction.id} 
+                <tr
+                  key={transaction.id}
                   onClick={() => handleTransactionClick(transaction)}
-                  className={`cursor-pointer transition-colors ${
-                    isLight ? 'hover:bg-gray-50' : 'hover:bg-blue-900/20'
-                  }`}
+                  className={`cursor-pointer transition-colors ${isLight ? 'hover:bg-gray-50' : 'hover:bg-blue-900/20'
+                    }`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
@@ -471,9 +463,8 @@ export default function HistoryTransactionPage() {
 
         {/* Pagination */}
         {pagination.totalPages > 0 && (
-          <div className={`px-6 py-4 border-t flex items-center justify-between ${
-            isLight ? 'border-gray-200' : 'border-blue-900/40'
-          }`}>
+          <div className={`px-6 py-4 border-t flex items-center justify-between ${isLight ? 'border-gray-200' : 'border-blue-900/40'
+            }`}>
             <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-blue-100/70'}`}>
               Hiển thị {((pagination.page - 1) * pagination.size) + 1} đến{' '}
               {Math.min(pagination.page * pagination.size, pagination.total)} trong tổng số{' '}
@@ -483,11 +474,10 @@ export default function HistoryTransactionPage() {
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1 || loading}
-                className={`rounded-lg px-3 py-1 transition-colors disabled:opacity-50 ${
-                  isLight
-                    ? 'text-gray-700 hover:bg-gray-100 disabled:hover:bg-transparent'
-                    : 'text-blue-100/80 hover:bg-blue-900/40 disabled:hover:bg-transparent'
-                }`}
+                className={`rounded-lg px-3 py-1 transition-colors disabled:opacity-50 ${isLight
+                  ? 'text-gray-700 hover:bg-gray-100 disabled:hover:bg-transparent'
+                  : 'text-blue-100/80 hover:bg-blue-900/40 disabled:hover:bg-transparent'
+                  }`}
               >
                 Trước
               </button>
@@ -497,11 +487,10 @@ export default function HistoryTransactionPage() {
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={(pagination.totalPages && pagination.page >= pagination.totalPages) || loading}
-                className={`rounded-lg px-3 py-1 transition-colors disabled:opacity-50 ${
-                  isLight
-                    ? 'text-gray-700 hover:bg-gray-100 disabled:hover:bg-transparent'
-                    : 'text-blue-100/80 hover:bg-blue-900/40 disabled:hover:bg-transparent'
-                }`}
+                className={`rounded-lg px-3 py-1 transition-colors disabled:opacity-50 ${isLight
+                  ? 'text-gray-700 hover:bg-gray-100 disabled:hover:bg-transparent'
+                  : 'text-blue-100/80 hover:bg-blue-900/40 disabled:hover:bg-transparent'
+                  }`}
               >
                 Tiếp
               </button>
@@ -514,33 +503,28 @@ export default function HistoryTransactionPage() {
       {selectedTransaction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={handleCloseModal}
           />
-          
+
           {/* Modal */}
-          <div className={`relative w-full max-w-2xl rounded-2xl border shadow-2xl ${
-            isLight 
-              ? 'bg-white border-gray-200' 
-              : 'bg-blue-950/95 border-blue-800/40 backdrop-blur-xl'
-          }`}>
-            {/* Header */}
-            <div className={`flex items-center justify-between p-6 border-b ${
-              isLight ? 'border-gray-200' : 'border-blue-800/40'
+          <div className={`relative w-full max-w-2xl rounded-2xl border shadow-2xl ${isLight
+            ? 'bg-white border-gray-200'
+            : 'bg-blue-950/95 border-blue-800/40 backdrop-blur-xl'
             }`}>
+            {/* Header */}
+            <div className={`flex items-center justify-between p-6 border-b ${isLight ? 'border-gray-200' : 'border-blue-800/40'
+              }`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${
-                  isLight ? 'bg-blue-100' : 'bg-blue-900/60'
-                }`}>
-                  <FileText className={`h-5 w-5 ${
-                    isLight ? 'text-blue-600' : 'text-cyan-300'
-                  }`} />
+                <div className={`p-2 rounded-lg ${isLight ? 'bg-blue-100' : 'bg-blue-900/60'
+                  }`}>
+                  <FileText className={`h-5 w-5 ${isLight ? 'text-blue-600' : 'text-cyan-300'
+                    }`} />
                 </div>
                 <div>
-                  <h2 className={`text-xl font-semibold ${
-                    isLight ? 'text-gray-900' : 'text-white'
-                  }`}>
+                  <h2 className={`text-xl font-semibold ${isLight ? 'text-gray-900' : 'text-white'
+                    }`}>
                     Chi tiết giao dịch
                   </h2>
                   <p className={`text-sm ${isLight ? 'text-gray-500' : 'text-blue-100/70'}`}>
@@ -550,11 +534,10 @@ export default function HistoryTransactionPage() {
               </div>
               <button
                 onClick={handleCloseModal}
-                className={`p-2 rounded-lg transition-colors ${
-                  isLight 
-                    ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600' 
-                    : 'text-blue-100/70 hover:bg-blue-900/40 hover:text-white'
-                }`}
+                className={`p-2 rounded-lg transition-colors ${isLight
+                  ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                  : 'text-blue-100/70 hover:bg-blue-900/40 hover:text-white'
+                  }`}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -564,26 +547,22 @@ export default function HistoryTransactionPage() {
             <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
               {/* Transaction ID */}
               <div>
-                <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${
-                  isLight ? 'text-gray-500' : 'text-blue-200/70'
-                }`}>
+                <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                  }`}>
                   Mã giao dịch
                 </label>
-                <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                  isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                }`}>
-                  <code className={`flex-1 font-mono text-sm ${
-                    isLight ? 'text-gray-900' : 'text-white'
+                <div className={`flex items-center gap-2 p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
                   }`}>
+                  <code className={`flex-1 font-mono text-sm ${isLight ? 'text-gray-900' : 'text-white'
+                    }`}>
                     {selectedTransaction.id}
                   </code>
                   <button
                     onClick={() => handleCopyId(selectedTransaction.id)}
-                    className={`p-1.5 rounded transition-colors ${
-                      isLight 
-                        ? 'hover:bg-gray-200 text-gray-600' 
-                        : 'hover:bg-blue-800/40 text-blue-100/70 hover:text-white'
-                    }`}
+                    className={`p-1.5 rounded transition-colors ${isLight
+                      ? 'hover:bg-gray-200 text-gray-600'
+                      : 'hover:bg-blue-800/40 text-blue-100/70 hover:text-white'
+                      }`}
                     title="Sao chép mã giao dịch"
                   >
                     <Copy className="h-4 w-4" />
@@ -596,14 +575,12 @@ export default function HistoryTransactionPage() {
                 {/* Transaction Reference */}
                 {selectedTransaction.transactionReference && (
                   <div>
-                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${
-                      isLight ? 'text-gray-500' : 'text-blue-200/70'
-                    }`}>
+                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                      }`}>
                       Mã tham chiếu
                     </label>
-                    <div className={`p-3 rounded-lg ${
-                      isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                    }`}>
+                    <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                      }`}>
                       <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
                         {selectedTransaction.transactionReference}
                       </p>
@@ -613,31 +590,26 @@ export default function HistoryTransactionPage() {
 
                 {/* Type */}
                 <div>
-                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${
-                    isLight ? 'text-gray-500' : 'text-blue-200/70'
-                  }`}>
+                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                    }`}>
                     Loại giao dịch
                   </label>
-                  <div className={`p-3 rounded-lg ${
-                    isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                  }`}>
+                  <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                    }`}>
                     <TypeBadge type={selectedTransaction.type} isLight={isLight} />
                   </div>
                 </div>
 
                 {/* Amount */}
                 <div>
-                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${
-                    isLight ? 'text-gray-500' : 'text-blue-200/70'
-                  }`}>
+                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                    }`}>
                     Số tiền
                   </label>
-                  <div className={`p-3 rounded-lg ${
-                    isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                  }`}>
-                    <p className={`text-xl font-bold ${
-                      isLight ? 'text-gray-900' : 'text-white'
+                  <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
                     }`}>
+                    <p className={`text-xl font-bold ${isLight ? 'text-gray-900' : 'text-white'
+                      }`}>
                       {formatCurrency(selectedTransaction.amount || 0)}
                     </p>
                   </div>
@@ -645,29 +617,25 @@ export default function HistoryTransactionPage() {
 
                 {/* Status */}
                 <div>
-                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${
-                    isLight ? 'text-gray-500' : 'text-blue-200/70'
-                  }`}>
+                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                    }`}>
                     Trạng thái
                   </label>
-                  <div className={`p-3 rounded-lg ${
-                    isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                  }`}>
+                  <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                    }`}>
                     <StatusBadge status={selectedTransaction.status} />
                   </div>
                 </div>
 
                 {/* Created Date */}
                 <div>
-                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block flex items-center gap-1 ${
-                    isLight ? 'text-gray-500' : 'text-blue-200/70'
-                  }`}>
+                  <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block flex items-center gap-1 ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                    }`}>
                     <Calendar className="h-3 w-3" />
                     Ngày tạo
                   </label>
-                  <div className={`p-3 rounded-lg ${
-                    isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                  }`}>
+                  <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                    }`}>
                     <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
                       {formatDateOnly(selectedTransaction.createdDate)}
                     </p>
@@ -680,15 +648,13 @@ export default function HistoryTransactionPage() {
                 {/* Last Modified Date */}
                 {selectedTransaction.lastModifiedDate && (
                   <div>
-                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block flex items-center gap-1 ${
-                      isLight ? 'text-gray-500' : 'text-blue-200/70'
-                    }`}>
+                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block flex items-center gap-1 ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                      }`}>
                       <Clock className="h-3 w-3" />
                       Cập nhật lần cuối
                     </label>
-                    <div className={`p-3 rounded-lg ${
-                      isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
-                    }`}>
+                    <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                      }`}>
                       <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
                         {formatDateOnly(selectedTransaction.lastModifiedDate)}
                       </p>
@@ -702,16 +668,14 @@ export default function HistoryTransactionPage() {
             </div>
 
             {/* Footer */}
-            <div className={`flex items-center justify-end gap-3 p-6 border-t ${
-              isLight ? 'border-gray-200' : 'border-blue-800/40'
-            }`}>
+            <div className={`flex items-center justify-end gap-3 p-6 border-t ${isLight ? 'border-gray-200' : 'border-blue-800/40'
+              }`}>
               <button
                 onClick={handleCloseModal}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isLight
-                    ? 'text-gray-700 hover:bg-gray-100'
-                    : 'text-blue-100/80 hover:bg-blue-900/40'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isLight
+                  ? 'text-gray-700 hover:bg-gray-100'
+                  : 'text-blue-100/80 hover:bg-blue-900/40'
+                  }`}
               >
                 Đóng
               </button>
