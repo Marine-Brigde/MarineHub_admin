@@ -6,11 +6,9 @@ import { TrendingUp, Loader2 } from 'lucide-react'
 export default function RevenueChart() {
     const { isLight } = useTheme()
     const [revenues, setRevenues] = useState([])
+    const [allMonths, setAllMonths] = useState([]) // Store all months for buttons
     const [loading, setLoading] = useState(true)
-    const [dateRange, setDateRange] = useState({
-        startDate: '',
-        endDate: ''
-    })
+    const [selectedMonth, setSelectedMonth] = useState(null) // null = all, or {month, year}
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -28,30 +26,14 @@ export default function RevenueChart() {
         return value.toString()
     }
 
-    // Initialize default date range (start of month to end of month)
+    // Initial load - get all months for buttons
     useEffect(() => {
-        const today = new Date()
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-
-        const startDate = startOfMonth.toISOString().split('T')[0]
-        const endDate = endOfMonth.toISOString().split('T')[0]
-
-        setDateRange({ startDate, endDate })
-    }, [])
-
-    // Fetch revenues based on date range
-    useEffect(() => {
-        if (!dateRange.startDate || !dateRange.endDate) return
-
-        const fetchRevenues = async () => {
+        const fetchAllMonths = async () => {
             try {
                 setLoading(true)
-                const response = await revenueApi.getRevenues({
-                    startDate: dateRange.startDate,
-                    endDate: dateRange.endDate
-                })
+                const response = await revenueApi.getRevenues()
                 if (response.status === 200 && response.data) {
+                    setAllMonths(response.data || [])
                     setRevenues(response.data || [])
                 }
             } catch (err) {
@@ -60,10 +42,46 @@ export default function RevenueChart() {
                 setLoading(false)
             }
         }
-        fetchRevenues()
-    }, [dateRange])
+        fetchAllMonths()
+    }, [])
 
-    // Calculate max value for chart scaling
+    // Fetch revenues based on selected month
+    useEffect(() => {
+        const fetchMonthData = async () => {
+            try {
+                setLoading(true)
+                
+                if (!selectedMonth) {
+                    // Fetch all revenues
+                    const response = await revenueApi.getRevenues()
+                    if (response.status === 200 && response.data) {
+                        setRevenues(response.data || [])
+                    }
+                } else {
+                    // Fetch specific month data
+                    const year = selectedMonth.year
+                    const month = selectedMonth.month
+                    const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
+                    const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+
+                    const response = await revenueApi.getRevenues({
+                        startDate,
+                        endDate
+                    })
+
+                    if (response.status === 200 && response.data) {
+                        setRevenues(response.data || [])
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching revenues:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchMonthData()
+    }, [selectedMonth])
+
     const maxRevenue = Math.max(...revenues.map(r => r.totalRevenue), 0)
 
     return (
@@ -87,35 +105,49 @@ export default function RevenueChart() {
                     </div>
                 </div>
 
-                {/* Date Range Picker */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className={`text-xs font-semibold mb-1 block ${isLight ? 'text-gray-600' : 'text-blue-200/70'}`}>
-                            Từ ngày
-                        </label>
-                        <input
-                            type="date"
-                            value={dateRange.startDate}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                            className={`w-full rounded-lg px-3 py-2 text-sm border ${isLight
-                                ? 'border-gray-300 bg-white text-gray-900'
-                                : 'border-blue-700/40 bg-blue-900/40 text-white'
+                {/* Month Selector Buttons */}
+                <div className="space-y-3">
+                    <p className={`text-xs font-semibold ${isLight ? 'text-gray-600' : 'text-blue-200/70'}`}>
+                        Chọn tháng (để xem tất cả, không chọn)
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSelectedMonth(null)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${selectedMonth === null
+                                ? isLight
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-cyan-600/30 text-white border-cyan-500/60'
+                                : isLight
+                                    ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                    : 'bg-blue-900/30 text-blue-100 border-blue-800/40 hover:bg-blue-900/50'
                                 }`}
-                        />
-                    </div>
-                    <div>
-                        <label className={`text-xs font-semibold mb-1 block ${isLight ? 'text-gray-600' : 'text-blue-200/70'}`}>
-                            Đến ngày
-                        </label>
-                        <input
-                            type="date"
-                            value={dateRange.endDate}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                            className={`w-full rounded-lg px-3 py-2 text-sm border ${isLight
-                                ? 'border-gray-300 bg-white text-gray-900'
-                                : 'border-blue-700/40 bg-blue-900/40 text-white'
-                                }`}
-                        />
+                        >
+                            Tất cả
+                        </button>
+
+                        {allMonths.map((monthData, index) => {
+                            const isSelected = selectedMonth?.month === parseInt(monthData.month) &&
+                                selectedMonth?.year === parseInt(monthData.year)
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedMonth({
+                                        month: parseInt(monthData.month),
+                                        year: parseInt(monthData.year)
+                                    })}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${isSelected
+                                        ? isLight
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-emerald-500/25 text-emerald-100 border-emerald-500/50'
+                                        : isLight
+                                            ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                            : 'bg-blue-900/30 text-blue-100 border-blue-800/40 hover:bg-blue-900/50'
+                                        }`}
+                                >
+                                    Tháng {monthData.month}/{monthData.year}
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
             </div>
@@ -175,7 +207,7 @@ export default function RevenueChart() {
                                                     Doanh thu: {formatCurrency(revenue.totalRevenue)}
                                                 </p>
                                                 <p className={`text-xs font-semibold ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`}>
-                                                    Lợi nhuận: {formatCurrency(revenue.netRevenue)}
+                                                    Lợi nhuận thu về: {formatCurrency(revenue.netRevenue)}
                                                 </p>
                                             </div>
                                         </div>
@@ -257,3 +289,4 @@ export default function RevenueChart() {
         </div>
     )
 }
+

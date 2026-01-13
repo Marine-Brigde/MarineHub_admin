@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { transactionApi } from '../api/transactionApi'
+import { orderApi } from '../api/orderApi'
 import {
   Wallet2,
   ArrowDownUp,
   BadgeDollarSign,
   DollarSign,
-  CalendarRange,
   CheckCircle2,
   ArrowDownToLine,
   Building2,
@@ -17,7 +17,11 @@ import {
   Copy,
   Calendar,
   Clock,
-  FileText
+  FileText,
+  Receipt,
+  TrendingUp,
+  Ship,
+  Phone
 } from 'lucide-react'
 
 // Map API status values to UI labels
@@ -167,12 +171,16 @@ function TypeBadge({ type, isLight }) {
 
 export default function HistoryTransactionPage() {
   const { isLight } = useTheme()
+  const [filterType, setFilterType] = useState('all') // 'all' | 'revenue'
 
   // Transactions from API
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [showBill, setShowBill] = useState(false)
   const [pagination, setPagination] = useState({
     page: 1,
     size: 10,
@@ -228,19 +236,26 @@ export default function HistoryTransactionPage() {
     pagination.size
   ])
 
+  // Filter transactions by type in Frontend (BE doesn't support type filter)
+  const filteredTransactions = useMemo(() => {
+    if (filterType === 'revenue') {
+      return transactions.filter(t => t.type === 'Revenue')
+    }
+    return transactions
+  }, [transactions, filterType])
 
-  // Calculate stats from current page transactions (for display only)
-  // Note: For accurate stats across all pages, you'd need a separate API endpoint
+
+  // Calculate stats from filtered transactions (display only)
   const stats = useMemo(() => {
-    if (!transactions || transactions.length === 0) {
-      return { totalVolume: 0, pending: 0, approved: 0, totalTransactions: pagination.total || 0 }
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      return { totalVolume: 0, pending: 0, approved: 0, totalTransactions: 0 }
     }
 
-    const totalVolume = transactions.reduce((sum, item) => sum + (item.amount || 0), 0)
-    const pending = transactions.filter((item) =>
+    const totalVolume = filteredTransactions.reduce((sum, item) => sum + (item.amount || 0), 0)
+    const pending = filteredTransactions.filter((item) =>
       ['Pending', 'Processing'].includes(item.status)
     ).length
-    const approved = transactions.filter((item) =>
+    const approved = filteredTransactions.filter((item) =>
       item.status === 'Approved'
     ).length
 
@@ -248,9 +263,9 @@ export default function HistoryTransactionPage() {
       totalVolume,
       pending,
       approved,
-      totalTransactions: pagination.total || transactions.length
+      totalTransactions: filteredTransactions.length
     }
-  }, [transactions, pagination.total])
+  }, [filteredTransactions])
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || (pagination.totalPages && newPage > pagination.totalPages)) return
@@ -258,12 +273,57 @@ export default function HistoryTransactionPage() {
   }
 
   const handleTransactionClick = (transaction) => {
+    setShowBill(false)
     setSelectedTransaction(transaction)
   }
 
   const handleCloseModal = () => {
     setSelectedTransaction(null)
+    setOrders([])
+    setShowBill(false)
   }
+
+  // Fetch orders when transaction detail opens
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!showBill || !selectedTransaction || selectedTransaction.type !== 'Revenue' || !selectedTransaction.supplierId) {
+        setOrders([])
+        return
+      }
+
+      try {
+        setOrdersLoading(true)
+        const createdDate = new Date(selectedTransaction.createdDate)
+        const year = createdDate.getFullYear()
+        const month = createdDate.getMonth()
+
+        // First day of the month
+        const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+        // Last day of the month
+        const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+
+        const response = await orderApi.getOrders({
+          SupplierId: selectedTransaction.supplierId,
+          StartDate: startDate,
+          EndDate: endDate,
+          PageSize: 100
+        })
+
+        if (response.status === 200 && response.data) {
+          // Filter out Pending orders
+          const filteredOrders = (response.data.items || []).filter(order => order.status !== 'Pending')
+          setOrders(filteredOrders)
+        }
+      } catch (err) {
+        console.error('Error fetching orders:', err)
+        setOrders([])
+      } finally {
+        setOrdersLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [selectedTransaction, showBill])
 
   const handleCopyId = (id) => {
     navigator.clipboard.writeText(id)
@@ -293,15 +353,55 @@ export default function HistoryTransactionPage() {
     : 'border-blue-900/40 bg-gradient-to-br from-blue-950/80 to-blue-900/20'
   const headerText = isLight ? 'text-gray-500' : 'text-blue-100/70'
 
+  // Render Revenue tab
   return (
     <div>
-      <div className="mb-8">
-        <h1 className={`text-3xl font-semibold mb-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
-          Lịch sử giao dịch
-        </h1>
-        <p className={isLight ? 'text-gray-600' : 'text-blue-100/70'}>
-          Quản lý và theo dõi tất cả các giao dịch trong hệ thống MarineBridge
-        </p>
+      <div className="mb-8 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-3xl font-semibold mb-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+              Lịch sử giao dịch
+            </h1>
+            <p className={isLight ? 'text-gray-600' : 'text-blue-100/70'}>
+              Quản lý và theo dõi các giao dịch trong hệ thống MarineBridge
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              console.log('Clicked: all')
+              setFilterType('all')
+            }}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap border ${filterType === 'all'
+              ? isLight
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-cyan-600/30 text-white border-cyan-500/60'
+              : isLight
+                ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                : 'bg-blue-900/30 text-blue-100 border-blue-800/40 hover:bg-blue-900/50'
+              }`}
+          >
+            Tất cả giao dịch
+          </button>
+          <button
+            onClick={() => {
+              console.log('Clicked: revenue')
+              setFilterType('revenue')
+            }}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap border ${filterType === 'revenue'
+              ? isLight
+                ? 'bg-emerald-600 text-white border-emerald-600'
+                : 'bg-emerald-500/25 text-emerald-100 border-emerald-500/50'
+              : isLight
+                ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                : 'bg-blue-900/30 text-blue-100 border-blue-800/40 hover:bg-blue-900/50'
+              }`}
+          >
+            💰 Dao dịch đã hoàn tiền
+          </button>
+        </div>
       </div>
 
       {/* Error message */}
@@ -398,23 +498,23 @@ export default function HistoryTransactionPage() {
                 </tr>
               )}
 
-              {!loading && transactions.length === 0 && (
+              {!loading && filteredTransactions.length === 0 && (
                 <tr>
                   <td colSpan={6} className={`px-6 py-12 text-center ${isLight ? 'text-gray-500' : 'text-blue-100/70'}`}>
                     <div className="flex flex-col items-center gap-3">
                       <ArrowDownToLine className={`h-12 w-12 ${isLight ? 'text-gray-300' : 'text-blue-900/60'}`} />
                       <p className={`text-lg font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                        Không có giao dịch
+                        {filterType === 'revenue' ? 'Không có giao dịch Tiền Thanh Toán' : 'Không có giao dịch'}
                       </p>
                       <p className="text-sm">
-                        Chưa có giao dịch nào trong hệ thống
+                        {filterType === 'revenue' ? 'Chưa có giao dịch Tiền Thanh Toán nào' : 'Chưa có giao dịch nào trong hệ thống'}
                       </p>
                     </div>
                   </td>
                 </tr>
               )}
 
-              {!loading && transactions.map((transaction) => (
+              {!loading && filteredTransactions.map((transaction) => (
                 <tr
                   key={transaction.id}
                   onClick={() => handleTransactionClick(transaction)}
@@ -466,9 +566,12 @@ export default function HistoryTransactionPage() {
           <div className={`px-6 py-4 border-t flex items-center justify-between ${isLight ? 'border-gray-200' : 'border-blue-900/40'
             }`}>
             <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-blue-100/70'}`}>
-              Hiển thị {((pagination.page - 1) * pagination.size) + 1} đến{' '}
-              {Math.min(pagination.page * pagination.size, pagination.total)} trong tổng số{' '}
-              {pagination.total} giao dịch
+              Hiển thị {filteredTransactions.length > 0 ? 1 : 0} đến{' '}
+              {filteredTransactions.length} trong tổng số{' '}
+              {filterType === 'revenue'
+                ? `${filteredTransactions.length} giao dịch Tiền Thanh Toán`
+                : `${pagination.total} giao dịch`
+              }
             </div>
             <div className="flex items-center gap-2 text-sm">
               <button
@@ -532,15 +635,29 @@ export default function HistoryTransactionPage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleCloseModal}
-                className={`p-2 rounded-lg transition-colors ${isLight
-                  ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                  : 'text-blue-100/70 hover:bg-blue-900/40 hover:text-white'
-                  }`}
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedTransaction.type === 'Revenue' && selectedTransaction.supplierId && (
+                  <button
+                    onClick={() => setShowBill(prev => !prev)}
+                    disabled={ordersLoading}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${isLight
+                        ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                        : 'text-emerald-200 border-emerald-500/40 hover:bg-emerald-900/30'
+                      } disabled:opacity-50`}
+                  >
+                    {showBill ? 'Ẩn bill' : 'Xem bill'}
+                  </button>
+                )}
+                <button
+                  onClick={handleCloseModal}
+                  className={`p-2 rounded-lg transition-colors ${isLight
+                    ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                    : 'text-blue-100/70 hover:bg-blue-900/40 hover:text-white'
+                    }`}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Content */}
@@ -599,6 +716,40 @@ export default function HistoryTransactionPage() {
                     <TypeBadge type={selectedTransaction.type} isLight={isLight} />
                   </div>
                 </div>
+
+                {/* Supplier (only when name present) */}
+                {selectedTransaction.supplierName && (
+                  <div>
+                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                      }`}>
+                      Nhà cung cấp
+                    </label>
+                    <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                      }`}>
+                      <p className={`font-semibold ${isLight ? 'text-gray-900' : 'text-white'
+                        }`}>
+                        {selectedTransaction.supplierName}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Boatyard (only when name present) */}
+                {selectedTransaction.boatyardName && (
+                  <div>
+                    <label className={`text-xs font-semibold uppercase tracking-wider mb-2 block ${isLight ? 'text-gray-500' : 'text-blue-200/70'
+                      }`}>
+                      Xưởng tàu
+                    </label>
+                    <div className={`p-3 rounded-lg ${isLight ? 'bg-gray-50 border border-gray-200' : 'bg-blue-900/30 border border-blue-800/40'
+                      }`}>
+                      <p className={`font-semibold ${isLight ? 'text-gray-900' : 'text-white'
+                        }`}>
+                        {selectedTransaction.boatyardName}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Amount */}
                 <div>
@@ -665,6 +816,149 @@ export default function HistoryTransactionPage() {
                   </div>
                 )}
               </div>
+
+              {/* Orders Bill Section (only when toggled) */}
+              {showBill && selectedTransaction.type === 'Revenue' && selectedTransaction.supplierId && (
+                <div className={`mt-6 rounded-xl border-2 ${isLight ? 'border-emerald-200 bg-emerald-50/30' : 'border-emerald-900/40 bg-emerald-950/20'
+                  }`}>
+                  {/* Bill Header */}
+                  <div className={`p-4 border-b-2 ${isLight ? 'border-emerald-200 bg-emerald-100/50' : 'border-emerald-900/40 bg-emerald-900/20'
+                    }`}>
+                    <div className="flex items-center gap-3">
+                      <Receipt className={`h-6 w-6 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                      <div>
+                        <h3 className={`text-lg font-bold ${isLight ? 'text-emerald-900' : 'text-white'}`}>
+                          HÓA ĐƠN THANH TOÁN
+                        </h3>
+                        <p className={`text-xs ${isLight ? 'text-emerald-700' : 'text-emerald-300'}`}>
+                          Chi tiết đơn hàng trong tháng
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bill Content */}
+                  <div className="p-4 space-y-4">
+                    {ordersLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
+                      </div>
+                    ) : orders.length === 0 ? (
+                      <div className={`text-center py-6 ${isLight ? 'text-gray-600' : 'text-blue-100/70'}`}>
+                        <Package className={`h-8 w-8 mx-auto mb-2 ${isLight ? 'text-gray-400' : 'text-blue-800/40'}`} />
+                        <p className="text-sm">Không có đơn hàng trong kỳ này</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Orders List */}
+                        <div className="space-y-2">
+                          {orders.map((order, index) => (
+                            <div
+                              key={order.id}
+                              className={`p-3 rounded-lg border ${isLight
+                                ? 'bg-white border-gray-200'
+                                : 'bg-blue-900/20 border-blue-800/40'
+                                }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${isLight ? 'bg-gray-100 text-gray-700' : 'bg-blue-900/40 text-blue-100'
+                                      }`}>
+                                      #{index + 1}
+                                    </span>
+                                    <code className={`text-xs font-mono ${isLight ? 'text-gray-600' : 'text-blue-100/70'
+                                      }`}>
+                                      {order.id.slice(-8)}
+                                    </code>
+                                  </div>
+
+                                  {order.shipName && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Ship className="h-3.5 w-3.5 text-cyan-400" />
+                                      <span className={isLight ? 'text-gray-700' : 'text-blue-100/80'}>
+                                        {order.shipName}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {order.boatyardName && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Building2 className="h-3.5 w-3.5 text-purple-400" />
+                                      <span className={isLight ? 'text-gray-700' : 'text-blue-100/80'}>
+                                        {order.boatyardName}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {order.phone && (
+                                    <div className="flex items-center gap-2 text-xs">
+                                      <Phone className="h-3 w-3" />
+                                      <span className={isLight ? 'text-gray-600' : 'text-blue-100/60'}>
+                                        {order.phone}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="text-right">
+                                  <p className={`text-sm font-bold ${isLight ? 'text-gray-900' : 'text-white'
+                                    }`}>
+                                    {formatCurrency(order.totalAmount)}
+                                  </p>
+                                  <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] rounded-full ${order.status === 'Approved'
+                                    ? 'bg-emerald-500/15 text-emerald-300'
+                                    : order.status === 'Delivered'
+                                      ? 'bg-purple-500/15 text-purple-300'
+                                      : 'bg-amber-500/15 text-amber-300'
+                                    }`}>
+                                    {order.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Bill Summary */}
+                        <div className={`mt-4 pt-4 border-t-2 space-y-2 ${isLight ? 'border-emerald-200' : 'border-emerald-900/40'
+                          }`}>
+                          <div className="flex justify-between items-center">
+                            <span className={`text-sm ${isLight ? 'text-gray-700' : 'text-blue-100/80'}`}>
+                              Tổng đơn hàng ({orders.length})
+                            </span>
+                            <span className={`text-sm font-semibold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0))}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4 text-amber-400" />
+                              <span className={`text-sm font-medium ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
+                                Phí sàn (5%)
+                              </span>
+                            </div>
+                            <span className={`text-sm font-semibold ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
+                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0) * 0.05)}
+                            </span>
+                          </div>
+
+                          <div className={`flex justify-between items-center pt-3 border-t ${isLight ? 'border-emerald-300' : 'border-emerald-800/40'
+                            }`}>
+                            <span className={`text-base font-bold ${isLight ? 'text-emerald-900' : 'text-emerald-300'}`}>
+                              Tổng thanh toán
+                            </span>
+                            <span className={`text-xl font-bold ${isLight ? 'text-emerald-900' : 'text-emerald-300'}`}>
+                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0) * 1.05)}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}

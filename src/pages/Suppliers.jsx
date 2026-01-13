@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { supplierApi } from '../api/supplierApi'
 import { revenueApi } from '../api/revenueApi'
-import { Search, Package, MapPin, Calendar, User, Phone, Mail, Globe, Eye, DollarSign, X, QrCode, Download } from 'lucide-react'
+import SupplierOrders from '../components/Suppliers/SupplierOrders'
+import { Search, Package, MapPin, Calendar, User, Phone, Mail, Globe, Eye, DollarSign, X, QrCode, Download, ShoppingCart } from 'lucide-react'
 
 export default function SuppliersPage() {
   const { isLight } = useTheme()
@@ -29,6 +30,7 @@ export default function SuppliersPage() {
   const [revenueError, setRevenueError] = useState(null)
   const [qrCodeUrl, setQrCodeUrl] = useState(null)
   const [revenueSuccess, setRevenueSuccess] = useState(false)
+  const [ordersOpen, setOrdersOpen] = useState(false)
 
   const fetchSuppliers = async () => {
     try {
@@ -117,6 +119,16 @@ export default function SuppliersPage() {
     setRevenueError(null)
     setQrCodeUrl(null)
     setRevenueSuccess(false)
+  }
+
+  const openOrders = (supplier) => {
+    setSelectedSupplier(supplier)
+    setOrdersOpen(true)
+  }
+
+  const closeOrders = () => {
+    setOrdersOpen(false)
+    setSelectedSupplier(null)
   }
 
   // Helper function to adjust dates to start/end of month
@@ -435,16 +447,28 @@ export default function SuppliersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                      <button
-                        onClick={() => openDetail(supplier)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${isLight
-                          ? 'text-blue-600 hover:bg-blue-50'
-                          : 'text-cyan-400 hover:bg-blue-900/40'
-                          }`}
-                      >
-                        <Eye className="h-4 w-4" />
-                        Xem chi tiết
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => openDetail(supplier)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${isLight
+                            ? 'text-blue-600 hover:bg-blue-50'
+                            : 'text-cyan-400 hover:bg-blue-900/40'
+                            }`}
+                        >
+                          <Eye className="h-4 w-4" />
+                          Chi tiết
+                        </button>
+                        <button
+                          onClick={() => openOrders(supplier)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${isLight
+                            ? 'text-emerald-600 hover:bg-emerald-50'
+                            : 'text-emerald-400 hover:bg-emerald-900/40'
+                            }`}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          Đơn hàng
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -933,6 +957,13 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
+
+      {/* Supplier Orders Modal */}
+      <SupplierOrders
+        supplier={selectedSupplier}
+        isOpen={ordersOpen}
+        onClose={closeOrders}
+      />
     </div>
   )
 }
