@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { transactionApi } from '../api/transactionApi'
 import { orderApi } from '../api/orderApi'
+import { bookingApi } from '../api/bookingApi'
+import { boatyardApi } from '../api/boatyardApi'
+import { supplierApi } from '../api/supplierApi'
 import {
   Wallet2,
   ArrowDownUp,
@@ -21,7 +24,8 @@ import {
   Receipt,
   TrendingUp,
   Ship,
-  Phone
+  Phone,
+  Percent
 } from 'lucide-react'
 
 // Map API status values to UI labels
@@ -283,10 +287,10 @@ export default function HistoryTransactionPage() {
     setShowBill(false)
   }
 
-  // Fetch orders when transaction detail opens
+  // Fetch orders/bookings when transaction detail opens
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!showBill || !selectedTransaction || selectedTransaction.type !== 'Revenue' || !selectedTransaction.supplierId) {
+    const fetchOrdersOrBookings = async () => {
+      if (!showBill || !selectedTransaction || (!selectedTransaction.supplierId && !selectedTransaction.boatyardId)) {
         setOrders([])
         return
       }
@@ -302,27 +306,65 @@ export default function HistoryTransactionPage() {
         // Last day of the month
         const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
 
-        const response = await orderApi.getOrders({
-          SupplierId: selectedTransaction.supplierId,
-          StartDate: startDate,
-          EndDate: endDate,
-          PageSize: 100
-        })
+        let response
+        let items = []
 
-        if (response.status === 200 && response.data) {
-          // Filter out Pending orders
-          const filteredOrders = (response.data.items || []).filter(order => order.status !== 'Pending')
-          setOrders(filteredOrders)
+        // Fetch orders for suppliers
+        if (selectedTransaction.supplierId) {
+          response = await orderApi.getOrders({
+            SupplierId: selectedTransaction.supplierId,
+            StartDate: startDate,
+            EndDate: endDate,
+            PageSize: 100
+          })
+          if (response.status === 200 && response.data) {
+            items = (response.data.items || []).filter(order => order.status !== 'Pending')
+          }
         }
+
+        // Fetch bookings for boatyards
+        if (selectedTransaction.boatyardId) {
+          response = await bookingApi.getBookings({
+            BoatyardId: selectedTransaction.boatyardId,
+            StartDate: startDate,
+            EndDate: endDate,
+            PageSize: 100
+          })
+          if (response.status === 200 && response.data) {
+            items = (response.data.items || []).filter(booking => booking.status !== 'Pending')
+          }
+        }
+
+        // Fetch commission fee for each item's boatyard/supplier
+        const enrichedItems = await Promise.all(items.map(async (item) => {
+          let commissionFee = 0
+          try {
+            if (item.boatyardId) {
+              const boatyardRes = await boatyardApi.getBoatyardById(item.boatyardId)
+              commissionFee = boatyardRes?.data?.commissionFeePercent ?? boatyardRes?.commissionFeePercent ?? 0
+            } else if (item.supplierId) {
+              const supplierRes = await supplierApi.getSupplierById(item.supplierId)
+              commissionFee = supplierRes?.data?.commissionFeePercent ?? supplierRes?.commissionFeePercent ?? 0
+            }
+          } catch (err) {
+            console.error('Error fetching commission for item:', err)
+          }
+          return {
+            ...item,
+            commissionFeePercent: commissionFee
+          }
+        }))
+
+        setOrders(enrichedItems)
       } catch (err) {
-        console.error('Error fetching orders:', err)
+        console.error('Error fetching orders/bookings:', err)
         setOrders([])
       } finally {
         setOrdersLoading(false)
       }
     }
 
-    fetchOrders()
+    fetchOrdersOrBookings()
   }, [selectedTransaction, showBill])
 
   const handleCopyId = (id) => {
@@ -636,16 +678,16 @@ export default function HistoryTransactionPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {selectedTransaction.type === 'Revenue' && selectedTransaction.supplierId && (
+                {(selectedTransaction.supplierId || selectedTransaction.boatyardId) && (
                   <button
                     onClick={() => setShowBill(prev => !prev)}
                     disabled={ordersLoading}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${isLight
-                        ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50'
-                        : 'text-emerald-200 border-emerald-500/40 hover:bg-emerald-900/30'
+                      ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                      : 'text-emerald-200 border-emerald-500/40 hover:bg-emerald-900/30'
                       } disabled:opacity-50`}
                   >
-                    {showBill ? 'Ẩn bill' : 'Xem bill'}
+                    {showBill ? 'Ẩn đơn' : 'Xem đơn'}
                   </button>
                 )}
                 <button
@@ -818,7 +860,7 @@ export default function HistoryTransactionPage() {
               </div>
 
               {/* Orders Bill Section (only when toggled) */}
-              {showBill && selectedTransaction.type === 'Revenue' && selectedTransaction.supplierId && (
+              {showBill && selectedTransaction.type === 'Revenue' && (selectedTransaction.supplierId || selectedTransaction.boatyardId) && (
                 <div className={`mt-6 rounded-xl border-2 ${isLight ? 'border-emerald-200 bg-emerald-50/30' : 'border-emerald-900/40 bg-emerald-950/20'
                   }`}>
                   {/* Bill Header */}
@@ -899,6 +941,15 @@ export default function HistoryTransactionPage() {
                                       </span>
                                     </div>
                                   )}
+
+                                  {order.commissionFeePercent !== undefined && (
+                                    <div className="flex items-center gap-2 text-xs mt-1">
+                                      <Percent className="h-3 w-3 text-orange-400" />
+                                      <span className={isLight ? 'text-orange-600' : 'text-orange-300'}>
+                                        Phí: {order.commissionFeePercent}%
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="text-right">
@@ -936,21 +987,28 @@ export default function HistoryTransactionPage() {
                             <div className="flex items-center gap-2">
                               <TrendingUp className="h-4 w-4 text-amber-400" />
                               <span className={`text-sm font-medium ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
-                                Phí sàn (5%)
+                                Phí sàn ({
+                                  (() => {
+                                    const totalOrders = orders.reduce((sum, o) => sum + o.totalAmount, 0)
+                                    const commissionFee = totalOrders - selectedTransaction.amount
+                                    const commissionPercent = totalOrders > 0 ? (commissionFee / totalOrders * 100).toFixed(2) : 0
+                                    return commissionPercent
+                                  })()
+                                }%)
                               </span>
                             </div>
                             <span className={`text-sm font-semibold ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
-                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0) * 0.05)}
+                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0) - selectedTransaction.amount)}
                             </span>
                           </div>
 
                           <div className={`flex justify-between items-center pt-3 border-t ${isLight ? 'border-emerald-300' : 'border-emerald-800/40'
                             }`}>
                             <span className={`text-base font-bold ${isLight ? 'text-emerald-900' : 'text-emerald-300'}`}>
-                              Tổng thanh toán
+                              Admin phải trả
                             </span>
                             <span className={`text-xl font-bold ${isLight ? 'text-emerald-900' : 'text-emerald-300'}`}>
-                              {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0) * 1.05)}
+                              {formatCurrency(selectedTransaction.amount)}
                             </span>
                           </div>
                         </div>

@@ -1,5 +1,11 @@
 // src/types/api.js
 
+// Update Type Enum - mirrors backend ETypeUpdate
+export const UPDATE_TYPES = {
+    BOATYARD: 'Boatyard',
+    SUPPLIER: 'Supplier'
+}
+
 // Generic API Response structure
 export const ApiResponse = (data) => ({
     status: Number,

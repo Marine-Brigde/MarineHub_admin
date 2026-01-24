@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { boatyardApi } from '../api/boatyardApi'
 import { revenueApi } from '../api/revenueApi'
-import { Search, Building2, MapPin, Calendar, User, Phone, Mail, Globe, Eye, DollarSign, X, QrCode, Download } from 'lucide-react'
+import { accountApi } from '../api/accountApi'
+import { UPDATE_TYPES } from '../types/api'
+import BoatyardBookings from '../components/Boatyards/BoatyardBookings'
+import { Search, Building2, MapPin, Calendar, User, Phone, Mail, Globe, Eye, DollarSign, X, QrCode, Download, Percent, Check, BookOpen } from 'lucide-react'
 
 export default function BoatyardsPage() {
   const { isLight } = useTheme()
@@ -29,6 +32,94 @@ export default function BoatyardsPage() {
   const [revenueError, setRevenueError] = useState(null)
   const [qrCodeUrl, setQrCodeUrl] = useState(null)
   const [revenueSuccess, setRevenueSuccess] = useState(false)
+  const [commissionEditOpen, setCommissionEditOpen] = useState(false)
+  const [commissionEditValue, setCommissionEditValue] = useState('')
+  const [commissionEditLoading, setCommissionEditLoading] = useState(false)
+  const [commissionEditError, setCommissionEditError] = useState(null)
+  const [bookingsOpen, setBookingsOpen] = useState(false)
+
+  const openCommissionEdit = (boatyard) => {
+    setSelectedBoatyard(boatyard)
+    setCommissionEditValue(boatyard.commissionFeePercent?.toString() || '')
+    setCommissionEditError(null)
+    setCommissionEditOpen(true)
+  }
+
+  const closeCommissionEdit = () => {
+    setCommissionEditOpen(false)
+    setCommissionEditValue('')
+    setCommissionEditError(null)
+  }
+
+  const handleCommissionEditChange = (e) => {
+    setCommissionEditValue(e.target.value)
+    setCommissionEditError(null)
+  }
+
+  const saveCommissionFee = async () => {
+    if (!selectedBoatyard) return
+
+    // Validate
+    if (!commissionEditValue) {
+      setCommissionEditError('Vui lòng nhập phí hoa hồng')
+      return
+    }
+
+    const percent = parseFloat(commissionEditValue)
+    if (isNaN(percent) || percent < 0 || percent > 100) {
+      setCommissionEditError('Phí hoa hồng phải là số từ 0 đến 100')
+      return
+    }
+
+    try {
+      setCommissionEditLoading(true)
+      setCommissionEditError(null)
+
+      await accountApi.updateCommissionFee(
+        selectedBoatyard.id,
+        UPDATE_TYPES.BOATYARD,
+        percent
+      )
+
+      // Update local state
+      setBoatyards(prev => prev.map(b =>
+        b.id === selectedBoatyard.id
+          ? { ...b, commissionFeePercent: percent }
+          : b
+      ))
+
+      setSelectedBoatyard(prev => ({
+        ...prev,
+        commissionFeePercent: percent
+      }))
+
+      closeCommissionEdit()
+    } catch (err) {
+      console.error('Error updating commission fee:', err)
+      // Get error message from various possible response structures
+      let errorMsg = 'Không thể cập nhật phí hoa hồng'
+      if (err.response?.data?.message) {
+        errorMsg = err.response.data.message
+      } else if (err.response?.data?.data) {
+        errorMsg = err.response.data.data
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      setCommissionEditError(errorMsg)
+    } finally {
+      setCommissionEditLoading(false)
+    }
+  }
+
+  const openBookings = (boatyard) => {
+    setSelectedBoatyard(boatyard)
+    setBookingsOpen(true)
+  }
+
+  const closeBookings = () => {
+    setBookingsOpen(false)
+    setSelectedBoatyard(null)
+  }
 
   const fetchBoatyards = async () => {
     try {
@@ -665,6 +756,36 @@ export default function BoatyardsPage() {
                 </div>
               )}
 
+              {/* Commission */}
+              {typeof selectedBoatyard.commissionFeePercent !== 'undefined' && selectedBoatyard.commissionFeePercent !== null && (
+                <div className={`p-4 rounded-lg border ${isLight ? 'border-gray-200 bg-gray-50' : 'border-zinc-800 bg-zinc-800/50'
+                  }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Percent className={`h-5 w-5 ${isLight ? 'text-blue-600' : 'text-cyan-400'
+                        }`} />
+                      <h3 className={`font-semibold ${isLight ? 'text-gray-900' : 'text-white'
+                        }`}>
+                        Phí hoa hồng
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => openCommissionEdit(selectedBoatyard)}
+                      className={`px-2 py-1 text-xs font-medium rounded transition-colors ${isLight
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                        }`}
+                    >
+                      Sửa
+                    </button>
+                  </div>
+                  <div className={`text-lg font-semibold ${isLight ? 'text-gray-900' : 'text-white'
+                    }`}>
+                    {selectedBoatyard.commissionFeePercent}%
+                  </div>
+                </div>
+              )}
+
               {/* Timestamps */}
               <div className={`p-4 rounded-lg border ${isLight ? 'border-gray-200 bg-gray-50' : 'border-zinc-800 bg-zinc-800/50'
                 }`}>
@@ -701,16 +822,28 @@ export default function BoatyardsPage() {
             {/* Footer */}
             <div className={`sticky bottom-0 flex items-center justify-between gap-3 p-6 border-t ${isLight ? 'border-gray-200 bg-white' : 'border-zinc-800 bg-zinc-900'
               }`}>
-              <button
-                onClick={() => openRevenue(selectedBoatyard)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isLight
-                  ? 'bg-cyan-600 text-white hover:bg-cyan-700'
-                  : 'bg-cyan-600 text-white hover:bg-cyan-700'
-                  }`}
-              >
-                <DollarSign className="h-4 w-4" />
-                Tạo đơn doanh thu
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => openBookings(selectedBoatyard)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isLight
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    }`}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Xem booking
+                </button>
+                <button
+                  onClick={() => openRevenue(selectedBoatyard)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isLight
+                    ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                    : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                    }`}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Tạo đơn doanh thu
+                </button>
+              </div>
               <button
                 onClick={closeDetail}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${isLight
@@ -935,7 +1068,94 @@ export default function BoatyardsPage() {
           </div>
         </div>
       )}
-    </div>
-  )
-}
 
+      {/* Commission Edit Modal */}
+      {commissionEditOpen && selectedBoatyard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={closeCommissionEdit}></div>
+          <div className={`relative w-full max-w-md rounded-lg ${isLight ? 'bg-white' : 'bg-zinc-900'} border ${isLight ? 'border-gray-200' : 'border-zinc-800'}`}>
+            {/* Header */}
+            <div className={`flex items-center justify-between p-6 border-b ${isLight ? 'border-gray-200' : 'border-zinc-800'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-lg ${isLight ? 'bg-blue-100' : 'bg-blue-900/40'}`}>
+                  <Percent className={`h-6 w-6 ${isLight ? 'text-blue-600' : 'text-cyan-400'}`} />
+                </div>
+                <div>
+                  <h2 className={`text-xl font-semibold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                    Chỉnh sửa phí hoa hồng
+                  </h2>
+                  <p className={`text-sm mt-0.5 ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+                    {selectedBoatyard.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={closeCommissionEdit}
+                className={`p-2 rounded-lg transition-colors ${isLight ? 'text-gray-500 hover:bg-gray-100' : 'text-zinc-400 hover:bg-zinc-800'}`}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {commissionEditError && (
+                <div className={`p-3 rounded-lg ${isLight ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-red-900/20 border border-red-800 text-red-400'}`}>
+                  {commissionEditError}
+                </div>
+              )}
+
+              <div>
+                <label className={`text-sm font-medium mb-2 block ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
+                  Phí hoa hồng (%) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={commissionEditValue}
+                  onChange={handleCommissionEditChange}
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 ${isLight
+                    ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/20'
+                    : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/20'
+                    }`}
+                  placeholder="Nhập phí hoa hồng"
+                />
+                <p className={`text-xs mt-1.5 ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+                  Nhập giá trị từ 0 đến 100
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className={`flex items-center justify-end gap-3 p-6 border-t ${isLight ? 'border-gray-200' : 'border-zinc-800'}`}>
+              <button
+                onClick={closeCommissionEdit}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isLight
+                  ? 'text-gray-700 hover:bg-gray-100'
+                  : 'text-zinc-300 hover:bg-zinc-800'
+                  }`}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={saveCommissionFee}
+                disabled={commissionEditLoading}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${isLight
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                  }`}
+              >
+                <Check className="h-4 w-4" />
+                {commissionEditLoading ? 'Đang lưu...' : 'Lưu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bookings Modal Component */}
+      <BoatyardBookings isOpen={bookingsOpen} onClose={closeBookings} boatyard={selectedBoatyard} />
+    </div>)
+}

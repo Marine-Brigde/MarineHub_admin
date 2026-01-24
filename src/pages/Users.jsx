@@ -31,7 +31,7 @@ export default function UsersPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const params = {
         page: pagination.page,
         size: pagination.size,
@@ -41,7 +41,7 @@ export default function UsersPage() {
       }
 
       const response = await userApi.getUsers(params)
-      
+
       if (response.status === 200) {
         setUsers(response.data.items || [])
         setPagination(prev => ({
@@ -145,45 +145,40 @@ export default function UsersPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className={`text-3xl font-semibold mb-2 ${
-          isLight ? 'text-gray-900' : 'text-white'
-        }`}>Quản lý Người Dùng</h1>
+        <h1 className={`text-3xl font-semibold mb-2 ${isLight ? 'text-gray-900' : 'text-white'
+          }`}>Quản lý Người Dùng</h1>
         <p className={isLight ? 'text-gray-600' : 'text-zinc-400'}>
           Quản lý danh sách người dùng trong hệ thống
         </p>
       </div>
 
       {/* Search and Controls */}
-      <div className={`rounded-lg border p-6 mb-6 ${
-        isLight 
-          ? 'border-gray-200 bg-white' 
+      <div className={`rounded-lg border p-6 mb-6 ${isLight
+          ? 'border-gray-200 bg-white'
           : 'border-zinc-800 bg-zinc-900'
-      }`}>
+        }`}>
         <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
-              isLight ? 'text-gray-500' : 'text-blue-300/70'
-            }`} />
+            <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${isLight ? 'text-gray-500' : 'text-blue-300/70'
+              }`} />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên người dùng..."
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              className={`w-full rounded-lg border px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-1 ${
-                isLight
+              className={`w-full rounded-lg border px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-1 ${isLight
                   ? 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/40'
                   : 'border-blue-800/60 bg-blue-900/40 text-slate-100 placeholder:text-blue-300/60 focus:border-cyan-500/50 focus:ring-cyan-500/40'
-              }`}
+                }`}
             />
           </div>
-          <button 
+          <button
             type="submit"
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              isLight
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${isLight
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-cyan-600 text-white hover:bg-cyan-700'
-            }`}
+              }`}
           >
             Tìm kiếm
           </button>
@@ -193,44 +188,38 @@ export default function UsersPage() {
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center py-12">
-          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${
-            isLight ? 'border-blue-600' : 'border-cyan-400'
-          }`}></div>
+          <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${isLight ? 'border-blue-600' : 'border-cyan-400'
+            }`}></div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className={`rounded-lg border p-4 mb-6 ${
-          isLight 
-            ? 'border-red-200 bg-red-50 text-red-800' 
+        <div className={`rounded-lg border p-4 mb-6 ${isLight
+            ? 'border-red-200 bg-red-50 text-red-800'
             : 'border-red-800 bg-red-900/20 text-red-400'
-        }`}>
+          }`}>
           {error}
         </div>
       )}
 
       {/* Users Table */}
       {!loading && !error && (
-        <div className={`rounded-lg border ${
-          isLight 
-            ? 'border-gray-200 bg-white' 
+        <div className={`rounded-lg border ${isLight
+            ? 'border-gray-200 bg-white'
             : 'border-zinc-800 bg-zinc-900'
-        }`}>
+          }`}>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className={`border-b ${
-                isLight ? 'border-gray-200' : 'border-zinc-800'
-              }`}>
+              <thead className={`border-b ${isLight ? 'border-gray-200' : 'border-zinc-800'
+                }`}>
                 <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isLight ? 'text-gray-500' : 'text-zinc-400'
-                  }`}>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-zinc-400'
+                    }`}>
                     Người dùng
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isLight ? 'text-gray-500' : 'text-zinc-400'
-                  }`}>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-zinc-400'
+                    }`}>
                     <button
                       onClick={() => handleSort('fullName')}
                       className="flex items-center gap-1 hover:underline"
@@ -241,30 +230,25 @@ export default function UsersPage() {
                       )}
                     </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isLight ? 'text-gray-500' : 'text-zinc-400'
-                  }`}>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-zinc-400'
+                    }`}>
                     Số điện thoại
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isLight ? 'text-gray-500' : 'text-zinc-400'
-                  }`}>
+                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-zinc-400'
+                    }`}>
                     Địa chỉ
                   </th>
-                  <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${
-                    isLight ? 'text-gray-500' : 'text-zinc-400'
-                  }`}>
+                  <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-zinc-400'
+                    }`}>
                     Thao tác
                   </th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${
-                isLight ? 'divide-gray-200' : 'divide-zinc-800'
-              }`}>
+              <tbody className={`divide-y ${isLight ? 'divide-gray-200' : 'divide-zinc-800'
+                }`}>
                 {users.map((user) => (
-                  <tr key={user.id} className={`hover:bg-opacity-50 ${
-                    isLight ? 'hover:bg-gray-50' : 'hover:bg-zinc-800/50'
-                  }`}>
+                  <tr key={user.id} className={`hover:bg-opacity-50 ${isLight ? 'hover:bg-gray-50' : 'hover:bg-zinc-800/50'
+                    }`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         {user.avatarUrl ? (
@@ -278,62 +262,45 @@ export default function UsersPage() {
                             }}
                           />
                         ) : null}
-                        <div 
-                          className={`h-10 w-10 rounded-full flex items-center justify-center border-2 ${
-                            user.avatarUrl ? 'hidden' : 'flex'
-                          } ${
-                            isLight 
-                              ? 'bg-blue-100 border-blue-300 text-blue-700' 
+                        <div
+                          className={`h-10 w-10 rounded-full flex items-center justify-center border-2 ${user.avatarUrl ? 'hidden' : 'flex'
+                            } ${isLight
+                              ? 'bg-blue-100 border-blue-300 text-blue-700'
                               : 'bg-blue-900/40 border-blue-700 text-cyan-300'
-                          }`}
+                            }`}
                         >
                           <User className="h-5 w-5" />
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`font-medium ${
-                        isLight ? 'text-gray-900' : 'text-white'
-                      }`}>
+                      <div className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'
+                        }`}>
                         {user.fullName || 'Chưa có tên'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`flex items-center gap-2 ${
-                        isLight ? 'text-gray-600' : 'text-zinc-400'
-                      }`}>
+                      <div className={`flex items-center gap-2 ${isLight ? 'text-gray-600' : 'text-zinc-400'
+                        }`}>
                         <Phone className="h-4 w-4" />
                         {user.phoneNumber || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`flex items-start gap-2 max-w-md ${
-                        isLight ? 'text-gray-600' : 'text-zinc-400'
-                      }`}>
+                      <div className={`flex items-start gap-2 max-w-md ${isLight ? 'text-gray-600' : 'text-zinc-400'
+                        }`}>
                         <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span className="line-clamp-2">{user.address || 'N/A'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => openEdit(user)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isLight
-                              ? 'text-blue-600 hover:bg-blue-50'
-                              : 'text-cyan-400 hover:bg-blue-900/40'
-                          }`}
-                          title="Chỉnh sửa"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button 
+                        <button
                           onClick={() => setDeleteConfirm(user)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isLight
+                          className={`p-2 rounded-lg transition-colors ${isLight
                               ? 'text-red-600 hover:bg-red-50'
                               : 'text-red-400 hover:bg-red-900/40'
-                          }`}
+                            }`}
                           title="Xóa"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -348,12 +315,10 @@ export default function UsersPage() {
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className={`px-6 py-4 border-t flex items-center justify-between ${
-              isLight ? 'border-gray-200' : 'border-zinc-800'
-            }`}>
-              <div className={`text-sm ${
-                isLight ? 'text-gray-600' : 'text-zinc-400'
+            <div className={`px-6 py-4 border-t flex items-center justify-between ${isLight ? 'border-gray-200' : 'border-zinc-800'
               }`}>
+              <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-zinc-400'
+                }`}>
                 Hiển thị {((pagination.page - 1) * pagination.size) + 1} đến{' '}
                 {Math.min(pagination.page * pagination.size, pagination.total)} trong tổng số{' '}
                 {pagination.total} người dùng
@@ -362,27 +327,24 @@ export default function UsersPage() {
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className={`px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50 ${
-                    isLight
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50 ${isLight
                       ? 'text-gray-600 hover:bg-gray-100 disabled:hover:bg-transparent'
                       : 'text-zinc-400 hover:bg-zinc-800/50 disabled:hover:bg-transparent'
-                  }`}
+                    }`}
                 >
                   Trước
                 </button>
-                <span className={`px-3 py-1 text-sm ${
-                  isLight ? 'text-gray-900' : 'text-white'
-                }`}>
+                <span className={`px-3 py-1 text-sm ${isLight ? 'text-gray-900' : 'text-white'
+                  }`}>
                   {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
-                  className={`px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50 ${
-                    isLight
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50 ${isLight
                       ? 'text-gray-600 hover:bg-gray-100 disabled:hover:bg-transparent'
                       : 'text-zinc-400 hover:bg-zinc-800/50 disabled:hover:bg-transparent'
-                  }`}
+                    }`}
                 >
                   Sau
                 </button>
@@ -394,17 +356,14 @@ export default function UsersPage() {
 
       {/* Empty State */}
       {!loading && !error && users.length === 0 && (
-        <div className={`rounded-lg border p-12 text-center ${
-          isLight 
-            ? 'border-gray-200 bg-white' 
+        <div className={`rounded-lg border p-12 text-center ${isLight
+            ? 'border-gray-200 bg-white'
             : 'border-zinc-800 bg-zinc-900'
-        }`}>
-          <User className={`h-12 w-12 mx-auto mb-4 ${
-            isLight ? 'text-gray-400' : 'text-zinc-600'
-          }`} />
-          <h3 className={`text-lg font-medium mb-2 ${
-            isLight ? 'text-gray-900' : 'text-white'
           }`}>
+          <User className={`h-12 w-12 mx-auto mb-4 ${isLight ? 'text-gray-400' : 'text-zinc-600'
+            }`} />
+          <h3 className={`text-lg font-medium mb-2 ${isLight ? 'text-gray-900' : 'text-white'
+            }`}>
             Không tìm thấy người dùng nào
           </h3>
           <p className={isLight ? 'text-gray-600' : 'text-zinc-400'}>
@@ -417,85 +376,75 @@ export default function UsersPage() {
       {editOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={closeEdit}></div>
-          <div className={`relative w-full max-w-lg rounded-lg p-6 mx-4 ${
-            isLight ? 'bg-white border border-gray-200' : 'bg-zinc-900 border border-zinc-800'
-          }`}>
-            <h3 className={`text-lg font-semibold mb-4 ${
-              isLight ? 'text-gray-900' : 'text-white'
+          <div className={`relative w-full max-w-lg rounded-lg p-6 mx-4 ${isLight ? 'bg-white border border-gray-200' : 'bg-zinc-900 border border-zinc-800'
             }`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'
+              }`}>
               Chỉnh sửa người dùng
             </h3>
             <div className="space-y-4">
               <div>
-                <label className={`text-sm mb-1 block ${
-                  isLight ? 'text-gray-700' : 'text-zinc-300'
-                }`}>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'
+                  }`}>
                   Họ và tên
                 </label>
-                <input 
-                  name="fullName" 
-                  value={editForm.fullName} 
+                <input
+                  name="fullName"
+                  value={editForm.fullName}
                   onChange={handleEditChange}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
-                    isLight 
-                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' 
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${isLight
+                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40'
                       : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
-                  }`} 
+                    }`}
                 />
               </div>
               <div>
-                <label className={`text-sm mb-1 block ${
-                  isLight ? 'text-gray-700' : 'text-zinc-300'
-                }`}>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'
+                  }`}>
                   Số điện thoại
                 </label>
-                <input 
-                  name="phoneNumber" 
-                  value={editForm.phoneNumber} 
+                <input
+                  name="phoneNumber"
+                  value={editForm.phoneNumber}
                   onChange={handleEditChange}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
-                    isLight 
-                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' 
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${isLight
+                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40'
                       : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
-                  }`} 
+                    }`}
                 />
               </div>
               <div>
-                <label className={`text-sm mb-1 block ${
-                  isLight ? 'text-gray-700' : 'text-zinc-300'
-                }`}>
+                <label className={`text-sm mb-1 block ${isLight ? 'text-gray-700' : 'text-zinc-300'
+                  }`}>
                   Địa chỉ
                 </label>
-                <textarea 
-                  name="address" 
-                  value={editForm.address} 
+                <textarea
+                  name="address"
+                  value={editForm.address}
                   onChange={handleEditChange}
                   rows={3}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
-                    isLight 
-                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40' 
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${isLight
+                      ? 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/40'
                       : 'border-blue-800/60 bg-blue-900/40 text-slate-100 focus:border-cyan-500/50 focus:ring-cyan-500/40'
-                  }`} 
+                    }`}
                 />
               </div>
             </div>
             <div className="mt-6 flex items-center justify-end gap-2">
-              <button 
-                onClick={closeEdit} 
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-zinc-300 hover:bg-zinc-800'
-                }`}
+              <button
+                onClick={closeEdit}
+                className={`px-4 py-2 rounded-lg transition-colors ${isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-zinc-300 hover:bg-zinc-800'
+                  }`}
               >
                 Hủy
               </button>
-              <button 
-                onClick={saveEdit} 
-                disabled={saving} 
-                className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                  isLight 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${isLight
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-cyan-600 text-white hover:bg-cyan-700'
-                }`}
+                  }`}
               >
                 {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
@@ -508,35 +457,30 @@ export default function UsersPage() {
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setDeleteConfirm(null)}></div>
-          <div className={`relative w-full max-w-md rounded-lg p-6 mx-4 ${
-            isLight ? 'bg-white border border-gray-200' : 'bg-zinc-900 border border-zinc-800'
-          }`}>
-            <h3 className={`text-lg font-semibold mb-2 ${
-              isLight ? 'text-gray-900' : 'text-white'
+          <div className={`relative w-full max-w-md rounded-lg p-6 mx-4 ${isLight ? 'bg-white border border-gray-200' : 'bg-zinc-900 border border-zinc-800'
             }`}>
+            <h3 className={`text-lg font-semibold mb-2 ${isLight ? 'text-gray-900' : 'text-white'
+              }`}>
               Xác nhận xóa
             </h3>
-            <p className={`mb-6 ${
-              isLight ? 'text-gray-600' : 'text-zinc-400'
-            }`}>
+            <p className={`mb-6 ${isLight ? 'text-gray-600' : 'text-zinc-400'
+              }`}>
               Bạn có chắc chắn muốn xóa người dùng <strong>{deleteConfirm.fullName || 'này'}</strong>? Hành động này không thể hoàn tác.
             </p>
             <div className="flex items-center justify-end gap-2">
-              <button 
-                onClick={() => setDeleteConfirm(null)} 
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-zinc-300 hover:bg-zinc-800'
-                }`}
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className={`px-4 py-2 rounded-lg transition-colors ${isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-zinc-300 hover:bg-zinc-800'
+                  }`}
               >
                 Hủy
               </button>
-              <button 
-                onClick={() => handleDelete(deleteConfirm.id)} 
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isLight 
-                    ? 'bg-red-600 text-white hover:bg-red-700' 
+              <button
+                onClick={() => handleDelete(deleteConfirm.id)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isLight
+                    ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-red-600 text-white hover:bg-red-700'
-                }`}
+                  }`}
               >
                 Xóa
               </button>
