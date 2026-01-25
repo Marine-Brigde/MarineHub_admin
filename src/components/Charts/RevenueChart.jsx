@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { revenueApi } from '../../api/revenueApi'
-import { transactionApi } from '../../api/transactionApi'
 import { TrendingUp, Loader2 } from 'lucide-react'
 
 export default function RevenueChart() {
     const { isLight } = useTheme()
     const [revenues, setRevenues] = useState([])
     const [allMonths, setAllMonths] = useState([]) // Store all months for buttons
-    const [transactions, setTransactions] = useState([]) // Store all transactions
     const [loading, setLoading] = useState(true)
     const [selectedMonth, setSelectedMonth] = useState(null) // null = all, or {month, year}
 
@@ -28,35 +26,15 @@ export default function RevenueChart() {
         return value.toString()
     }
 
-    // Helper function to get net revenue: totalRevenue - amount of Revenue transactions
-    const getNetRevenueFromTransactions = (month, year, txns, totalRevenue) => {
-        const transactionAmount = txns
-            .filter(tx => {
-                const txDate = new Date(tx.createdDate)
-                return tx.type === 'Revenue' &&
-                    txDate.getMonth() === month - 1 &&
-                    txDate.getFullYear() === year
-            })
-            .reduce((sum, tx) => sum + (tx.amount || 0), 0)
-
-        return totalRevenue - transactionAmount
-    }
     useEffect(() => {
         const fetchAllMonths = async () => {
             try {
                 setLoading(true)
-                const [revenueRes, transactionRes] = await Promise.all([
-                    revenueApi.getRevenues(),
-                    transactionApi.getTransactions({ page: 1, size: 1000 })
-                ])
+                const response = await revenueApi.getRevenues()
 
-                if (revenueRes.status === 200 && revenueRes.data) {
-                    setAllMonths(revenueRes.data || [])
-                    setRevenues(revenueRes.data || [])
-                }
-
-                if (transactionRes.status === 200 && transactionRes.data) {
-                    setTransactions(transactionRes.data.items || [])
+                if (response.status === 200 && response.data) {
+                    setAllMonths(response.data || [])
+                    setRevenues(response.data || [])
                 }
             } catch (err) {
                 console.error('Error fetching revenues:', err)
@@ -198,7 +176,7 @@ export default function RevenueChart() {
                                     Tổng Lợi Nhuận Thu Về
                                 </p>
                                 <p className={`text-lg font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
-                                    {formatCurrency(revenues.reduce((sum, r) => sum + getNetRevenueFromTransactions(parseInt(r.month), parseInt(r.year), transactions, r.totalRevenue), 0))}
+                                    {formatCurrency(revenues.reduce((sum, r) => sum + (r.netRevenue || 0), 0))}
                                 </p>
                             </div>
                             <div>
@@ -215,7 +193,7 @@ export default function RevenueChart() {
                         <div className="space-y-4">
                             {revenues.map((revenue, index) => {
                                 const percentage = maxRevenue > 0 ? (revenue.totalRevenue / maxRevenue) * 100 : 0
-                                const netRevenue = getNetRevenueFromTransactions(parseInt(revenue.month), parseInt(revenue.year), transactions, revenue.totalRevenue)
+                                const netRevenue = revenue.netRevenue || 0
                                 const netPercentage = maxRevenue > 0 ? (netRevenue / maxRevenue) * 100 : 0
 
                                 return (
